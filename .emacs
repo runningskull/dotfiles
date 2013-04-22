@@ -15,10 +15,10 @@
 ;; ensure these are installed
 (defvar my-packages
   '(starter-kit
-    starter-kit-lisp starter-kit-eshell
-    starter-kit-js
+    starter-kit-lisp starter-kit-eshell starter-kit-js
     evil evil-leader evil-nerd-commenter evil-paredit
     helm ace-jump-mode
+    magit ack-and-a-half
     color-theme-solarized)
   "A list of packages to ensure are installed at launch")
 
@@ -30,6 +30,8 @@
 ;; enable
 (require 'evil)
 (require 'evil-leader)
+(require 'ack-and-a-half)
+(require 'magit)
 
 ;; configure
 (evil-mode 1)
@@ -86,10 +88,12 @@
 ;; vim keymaps
 (require 'my-keymaps)
 
-;; split window navigation
-
-
 ;; helm
-
 (global-set-key (kbd "C-c h") 'helm-mini)
 (helm-mode 1)
+
+;; no like idle-highlight
+(remove-hook 'prog-mode-hook 'esk-turn-on-idle-highlight-mode)
+
+;; always enable hs-minor-mode
+(add-hook 'prog-mode-hook #'hs-minor-mode)

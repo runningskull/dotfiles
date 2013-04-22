@@ -8,6 +8,8 @@
 (define-key evil-normal-state-map ", " 'evil-toggle-fold)
 (define-key evil-normal-state-map ",ff" 'evil-open-folds)
 (define-key evil-normal-state-map ",fd" 'evil-close-folds)
+(define-key evil-normal-state-map ",fs0" 'hs-hide-all)
+(define-key evil-normal-state-map ",fs9" 'hs-show-all)
 
 ;; Split windows
 (define-key evil-normal-state-map (kbd "M-h") 'evil-window-left)
@@ -24,6 +26,10 @@
   (interactive)
   (switch-to-buffer (other-buffer (current-buffer))))
 (define-key evil-normal-state-map ",z" 'switch-to-previous-buffer)
+
+
+;; ack
+(define-key evil-normal-state-map ",s" 'ack-and-a-half)
 
 
 (provide 'my-keymaps)

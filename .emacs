@@ -1,6 +1,18 @@
-(add-to-list 'load-path "~/.emacs.d/lisp/")
+;; ~~~~~ LOAD PATHS ~~~~~
+
+(setq load-path (append load-path '("~/.emacs.d/lisp/"
+                                    "~/.emacs.d/lisp/my-config/"
+                                    "~/.emacs.d/lisp/heml-cmd-t/")))
+
+(setq custom-theme-load-path (append custom-theme-load-path
+                                     '("~/.emacs.d/lisp/emacs-color-theme-solarized")))
+
+(setq exec-path (append exec-path '("/usr/local/bin")))
+
+
 
 ;; ~~~~~ PACKAGES ~~~~~
+
 ;; initialize
 (require 'package)
 (setq package-archives '(("melpa". "http://melpa.milkbox.net/packages/")
@@ -17,41 +29,36 @@
   '(starter-kit
     starter-kit-lisp starter-kit-eshell starter-kit-js
     evil evil-leader evil-nerd-commenter evil-paredit
-    helm ace-jump-mode
-    magit ack-and-a-half
-    color-theme-solarized)
+    helm projectile helm-projectile
+    auto-complete ace-jump-mode hideshowvis
+    js2-mode ac-js2
+    magit ack-and-a-half)
   "A list of packages to ensure are installed at launch")
 
 (dolist (p my-packages)
   (when (not (package-installed-p p))
     (package-install p)))
 
-
 ;; enable
-(require 'evil)
-(require 'evil-leader)
-(require 'ack-and-a-half)
 (require 'magit)
+(require 'auto-complete-config)
+(require 'projectile)
+(require 'hideshowvis)
 
-;; configure
-(evil-mode 1)
-(evil-leader/set-leader ",")
-
-;; other packages
-(push "~/.emacs.d/lisp/helm-cmd-t" load-path)
-(require 'helm-config)
-(require 'helm-cmd-t)
-(global-set-key (kbd "M-t") 'helm-cmd-t)
-
-(setq helm-ff-lynx-style-map nil
-      helm-input-idle-delay 0.1
-      helm-idle-delay 0.1)
+;; non-elpa packages
+;(push "~/.emacs.d/lisp/helm-cmd-t" load-path)
+;(require 'helm-config)
+;(require 'helm-cmd-t)
+;(global-set-key (kbd "M-t") 'helm-cmd-t)
+;
+;(setq helm-ff-lynx-style-map nil helm-input-idle-delay 0.1 helm-idle-delay 0.1)
 
 
 
 ;; ~~~~~ CONFIGURATION ~~~~~
 
 ;; run lisp
+
 (load (expand-file-name "~/quicklisp/slime-helper.el"))
 (setq inferior-lisp-program "/usr/local/bin/sbcl")
 
@@ -61,8 +68,8 @@
 ;; highlight matching parens
 (show-paren-mode t)
 
-;; don't highlight current line
-(hl-line-mode nil)
+;; command key
+(setq mac-command-modifier 'meta)
 
 ;; code completion
 (global-set-key (kbd "M-/") 'hippie-expand)
@@ -76,18 +83,6 @@
 ;; fonts like whoa
 (set-default-font "Source Code Pro")
 
-;; evil - making the most of SPC and RET
-;; (from http://emacswiki.org/emacs/Evil#toc11)
-(defun my-move-key (keymap-from keymap-to key)
-  "Moves keybindings from one keymap to another, deleting from the old location"
-  (define-key keymap-to key (lookup-key keymap-from key))
-  (define-key keymap-from key nil))
-(my-move-key evil-motion-state-map evil-normal-state-map (kbd "RET"))
-(my-move-key evil-motion-state-map evil-normal-state-map " ")
-
-;; vim keymaps
-(require 'my-keymaps)
-
 ;; helm
 (global-set-key (kbd "C-c h") 'helm-mini)
 (helm-mode 1)
@@ -95,5 +90,54 @@
 ;; no like idle-highlight
 (remove-hook 'prog-mode-hook 'esk-turn-on-idle-highlight-mode)
 
-;; always enable hs-minor-mode
-(add-hook 'prog-mode-hook #'hs-minor-mode)
+;; hooks
+(defun my-code-mode ()
+  (imenu-add-menubar-index) ;; parse for folds
+  (hs-minor-mode t)
+  (projectile-on)
+  (auto-complete-mode))
+(add-hook 'prog-mode-hook (lambda ()
+                            (my-code-mode)
+                            (evil-close-folds)))
+
+
+;; auto-complete mode
+(add-to-list 'ac-dictionary-directories "~/.emacs.d/elpa/auto-complete-20130330.1836/dict")
+(setq-default ac-sources (add-to-list 'ac-sources 'ac-source-dictionary))
+(global-auto-complete-mode t)
+(setq ac-auto-start 2)
+
+
+;; hideshowvis
+(autoload 'hideshowvis-enable "hideshowvis" "enable hideshowvis")
+(autoload 'hideshowvis-minor-mode "hideshowvis" "fold symbols" 'interactive)
+(hideshowvis-symbols)
+
+
+;; ~~~~~ FURTHER CONFIG ~~~~~
+
+;; languages
+(require 'my-javascript)
+
+;; modes
+(require 'my-evil)
+(require 'my-keymaps)
+
+
+
+;; ~~~~~ EMACS CUSTOMIZE ~~~~~
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(custom-safe-themes (quote ("fc5fcb6f1f1c1bc01305694c59a1a861b008c534cae8d0e48e4d5e81ad718bc6" "1e7e097ec8cb1f8c3a912d7e1e0331caeed49fef6cff220be63bd2a6ba4cc365" default))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(helm-selection ((t (:background "ForestGreen" :foreground "White" :underline "White"))))
+ '(helm-source-header ((t (:background "#22083397778B" :foreground "white" :weight bold :height 1.3))))
+ '(hs-face ((t (:foreground "#073642" :box (:line-width 1 :color "#073642"))))))

@@ -11,6 +11,12 @@
 (define-key evil-normal-state-map ",fs0" 'hs-hide-all)
 (define-key evil-normal-state-map ",fs9" 'hs-show-all)
 
+;; Open buffer
+(define-key evil-normal-state-map ",b" 'ido-switch-buffer)
+
+;; Quit
+(define-key evil-normal-state-map (kbd "M-q") 'save-buffers-kill-terminal)
+
 ;; Split windows
 (define-key evil-normal-state-map (kbd "M-h") 'evil-window-left)
 (define-key evil-normal-state-map (kbd "M-l") 'evil-window-right)
@@ -21,11 +27,31 @@
 (define-key evil-normal-state-map ",xx" 'smex)
 (define-key evil-normal-state-map ",xe" 'eval-last-sexp)
 
+(add-hook 'js3-mode-hook
+          (lambda ()
+            (define-key evil-normal-state-map ",x " 'js-send-region-and-go)))
+                                          
+
+;; insert a tab
+(define-key evil-insert-state-map (kbd "M-<tab>") 'quoted-insert)
+
+;; JS comma first
+(defun js-leading-comma ()
+  (interactive)
+  (insert "  , "))
+(define-key evil-insert-state-map (kbd "M-,") 'js-leading-comma)
+
 ;; swap to most recent buffer
 (defun switch-to-previous-buffer ()
   (interactive)
   (switch-to-buffer (other-buffer (current-buffer))))
 (define-key evil-normal-state-map ",z" 'switch-to-previous-buffer)
+
+
+;; open recent file
+(define-key evil-normal-state-map ",or" 'helm-recentf)
+(define-key evil-normal-state-map ",op" 'helm-projectile)
+(define-key evil-normal-state-map (kbd "M-t") 'helm-projectile)
 
 
 ;; ack

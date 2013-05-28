@@ -11,8 +11,18 @@ _fishy_collapsed_wd() {
 ")
 } 
 
+_suspended_jobs() {
+    [[ $(jobs -l | wc -l) -gt 0 ]] && echo "%{%F{yellow}%}⟐ "
+}
+
+#_suspended_jobs() {
+#    local symbols
+#    symbols=()
+#    [[ $(jobs -l | wc -l) -gt 0 ]] && symbols+="%{%F{cyan}%}⚙
+#}
+
 local user_color='green'; [ $UID -eq 0 ] && user_color='red'
-PROMPT='$(git_super_status)%b%{$fg[$user_color]%}$(_fishy_collapsed_wd)%{$reset_color%}%(!.#.▸) '
+PROMPT='$(_suspended_jobs)%b$(git_super_status)%b%{$fg[$user_color]%}$(_fishy_collapsed_wd)%{$reset_color%}%(!.#.▸) '
 PROMPT2='%{$fg[red]%}\ %{$reset_color%}'
 
 #local return_status="%{$fg_bold[red]%}%(?..%?)%{$reset_color%}"

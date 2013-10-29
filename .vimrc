@@ -7,26 +7,29 @@ filetype plugin on
 "``````````````````````````````````````````````````````````````````````````````
 " Vundle 
 
-  filetype off
-  
   " Required boilerplate
+  filetype off
   set rtp+=~/.vim/bundle/vundle/
   call vundle#rc()
   Bundle 'gmarik/vundle'
 
   " Rougly in order of most life-changing
   Bundle 'kien/ctrlp.vim'
-  Bundle 'scrooloose/nerdcommenter'
-  Bundle 'tpope/vim-fugitive'
+  "Bundle 'scrooloose/nerdcommenter'
   Bundle 'Lokaltog/vim-easymotion'
+  Bundle 'tpope/vim-fugitive'
+  Bundle 'tpope/vim-commentary'
   Bundle 'mileszs/ack.vim'
   Bundle 'tpope/vim-surround'
-  Bundle 'tomtom/quickfixsigns_vim'
   Bundle 'rson/vim-conque'
   Bundle 'Lokaltog/vim-powerline'
 
+  " Test-driving
+  Bundle 'Raimondi/delimitMate'
+
   " Colors
   Bundle 'runningskull/vim-colors-solarized'
+  Bundle 'chriskempson/base16-vim'
 
   " Language Runtimes
   Bundle 'tpope/vim-markdown'
@@ -36,39 +39,28 @@ filetype plugin on
   Bundle 'kchmck/vim-coffee-script'
   Bundle 'vim-scripts/glsl.vim'
   Bundle 'juvenn/mustache.vim'
+  Bundle 'jnwhiteh/vim-golang'
 
-  filetype plugin indent on
+  filetype plugin on
   
 
 
 "``````````````````````````````````````````````````````````````````````````````
 " Experiments 
 
-  " EasyMotion
-  noremap <d-j> ,,j
-  noremap <d-k> ,,k
-
-  " QuickfixSigns plugin {
-    set updatetime=150  " redraw quickly
-    let g:quickfixsigns_balloon = 0
-    let g:quickfixsigns_classes = ['marks', 'vcsdiff']
-    command! CLMK delm 0-9A-Za-z
-  " }
-
   " ConqueTerm stuff
   nmap <leader>x vip<leader>x
   vmap <leader>x <f9><cr>
-
-  " Powerline
-  let g:Powerline_symbols = 'unicode'
 
   " Shift Width
   noremap <leader>2 :set shiftwidth=2<cr>
   noremap <leader>4 :set shiftwidth=4<cr>
 
-  " iTerm insert mode cursor
-  let &t_SI = "\<Esc>]50;CursorShape=1\x7"
-  let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+  " delimitMate nice behavior on newlines
+  let delimitMate_expand_cr = 1
+
+  " File browsing sidebar
+  command! Files Vex | silent vertical resize 30 | set winfixwidth
 
 
 
@@ -78,6 +70,12 @@ filetype plugin on
 
   " mouse in the terminal
   set mouse=a
+  if has('mouse_sgr')
+    set ttymouse=sgr
+  endif
+
+  " No beeping
+  set vb
 
   " paste in the terminal
   nnoremap <F2> :set invpaste paste?<cr>
@@ -102,10 +100,14 @@ filetype plugin on
   set t_Co=256
   set background=dark
   let g:solarized_termcolors=256
+  command! TERM let g:solarized_termcolors=16 | set bg=dark | colo solarized
   let g:solarized_contrast="high"
+  let g:solarized_visibility="high"
   colo solarized
   "colo peaksea
-  "colo Tomorrow-Night
+
+  "let base16colorspace=256  " Access colors present in 256 colorspace"
+  "colo base16-railscasts
 
   " Status Bar
   set statusline=%F%m%r%h%w\ [POS=%04l,%04v][%p%%]\ [LEN=%L]
@@ -117,6 +119,16 @@ filetype plugin on
 
   " Buffer space top/bottom
   set scrolloff=3
+
+  " iTerm insert mode cursor
+  let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+  let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+
+  " Netrw tree view
+  let g:netrw_liststyle=3
+  let g:netrw_browse_split=4
+  let g:netrw_preview=1
+  let g:netrw_winsize=30
 
 
 
@@ -186,6 +198,10 @@ filetype plugin on
   set incsearch
   set nohls
 
+  " Copy to system clipboard
+  noremap <leader>ca mygg"*yG'y
+  vnoremap <leader>cc "*y
+
 
 
 
@@ -237,6 +253,7 @@ filetype plugin on
   set wildignore+=*.swp,.DS_Store
   set wildignore+=*.scssc
   set wildignore+=*/node_modules/*
+  set wildignore+=*/bower_components/*
 
   " Switch windows easily.
   noremap <c-h> <c-w>h
@@ -254,6 +271,14 @@ filetype plugin on
   " Make marks a little easier
   nnoremap ' `
   nnoremap ` '
+
+  " Ignore built files
+  let g:ctrlp_custom_ignore = {
+  \ 'dir':  'dist$',
+  \ }
+
+  " quicker suspend
+  nnoremap <leader>z <c-z>
 
 
 
@@ -282,72 +307,6 @@ filetype plugin on
   " Util for aligning things w/ colons (like CSS properties or JS object fields)
   noremap <leader>m 0f:wi<tab><esc>
   vnoremap <leader>m :norm ,m<cr>
-
-
-
-
-"``````````````````````````````````````````````````````````````````````````````
-" __special__
-
-  " Map :BD to kill the buffer w/o killing split window.
-  "       from http://vim.wikia.com/wiki/Deleting_a_buffer_without_closing_the_window
-  function! s:Kwbd(kwbdStage)
-    if(a:kwbdStage == 1)
-      if(!buflisted(winbufnr(0)))
-        bd!
-        return
-      endif
-      let s:kwbdBufNum = bufnr("%")
-      let s:kwbdWinNum = winnr()
-      windo call s:Kwbd(2)
-      execute s:kwbdWinNum . 'wincmd w'
-      let s:buflistedLeft = 0
-      let s:bufFinalJump = 0
-      let l:nBufs = bufnr("$")
-      let l:i = 1
-      while(l:i <= l:nBufs)
-        if(l:i != s:kwbdBufNum)
-          if(buflisted(l:i))
-            let s:buflistedLeft = s:buflistedLeft + 1
-          else
-            if(bufexists(l:i) && !strlen(bufname(l:i)) && !s:bufFinalJump)
-              let s:bufFinalJump = l:i
-            endif
-          endif
-        endif
-        let l:i = l:i + 1
-      endwhile
-      if(!s:buflistedLeft)
-        if(s:bufFinalJump)
-          windo if(buflisted(winbufnr(0))) | execute "b! " . s:bufFinalJump | endif
-        else
-          enew
-          let l:newBuf = bufnr("%")
-          windo if(buflisted(winbufnr(0))) | execute "b! " . l:newBuf | endif
-        endif
-        execute s:kwbdWinNum . 'wincmd w'
-      endif
-      if(buflisted(s:kwbdBufNum) || s:kwbdBufNum == bufnr("%"))
-        execute "bd! " . s:kwbdBufNum
-      endif
-      if(!s:buflistedLeft)
-        set buflisted
-        set bufhidden=delete
-        set buftype=nofile
-        setlocal noswapfile
-      endif
-    else
-      if(bufnr("%") == s:kwbdBufNum)
-        let prevbufvar = bufnr("#")
-        if(prevbufvar > 0 && buflisted(prevbufvar) && prevbufvar != s:kwbdBufNum)
-          b #
-        else
-          bn
-        endif
-      endif
-    endif
-  endfunction
-  command! BD call s:Kwbd(1)
 
 
 

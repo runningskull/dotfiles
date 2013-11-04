@@ -15,14 +15,13 @@ filetype plugin on
 
   " Rougly in order of most life-changing
   Bundle 'kien/ctrlp.vim'
-  "Bundle 'scrooloose/nerdcommenter'
   Bundle 'Lokaltog/vim-easymotion'
   Bundle 'tpope/vim-fugitive'
   Bundle 'tpope/vim-commentary'
   Bundle 'mileszs/ack.vim'
   Bundle 'tpope/vim-surround'
-  Bundle 'rson/vim-conque'
-  Bundle 'Lokaltog/vim-powerline'
+  Bundle 'bling/vim-airline'
+  " Bundle 'rson/vim-conque'
 
   " Test-driving
   Bundle 'Raimondi/delimitMate'
@@ -30,6 +29,8 @@ filetype plugin on
   " Colors
   Bundle 'runningskull/vim-colors-solarized'
   Bundle 'chriskempson/base16-vim'
+  Bundle 'vim-scripts/ironman.vim'
+  Bundle 'therubymug/vim-pyte'
 
   " Language Runtimes
   Bundle 'tpope/vim-markdown'
@@ -43,6 +44,7 @@ filetype plugin on
 
   filetype plugin on
   
+
 
 
 "``````````````````````````````````````````````````````````````````````````````
@@ -61,6 +63,13 @@ filetype plugin on
 
   " File browsing sidebar
   command! Files Vex | silent vertical resize 30 | set winfixwidth
+
+  " Open a scratch buffer
+  map <leader><leader>s :vsp<cr> <c-l>:e /tmp/scratch-<c-r>=strftime("%Y%m%d%H%M")<cr><cr>i
+
+  " Airline
+  let g:airline_powerline_fonts = 1
+
 
 
 
@@ -88,47 +97,63 @@ filetype plugin on
   set guioptions-=l
   set guioptions-=L
 
-  " experiment w/ fonts
+  " such font.     so letters. wow
   set guifont=Source\ Code\ Pro\ for\ Powerline:h12
-  "set guifont=Source\ Code\ Pro:h12
-  "set guifont=Consolas:h13
-  "set guifont=Menlo:h12
-  "set guifont=Monaco:h13
-
-  " Colors like whoa!
-  syn on
-  set t_Co=256
-  set background=dark
-  let g:solarized_termcolors=256
-  command! TERM let g:solarized_termcolors=16 | set bg=dark | colo solarized
-  let g:solarized_contrast="high"
-  let g:solarized_visibility="high"
-  colo solarized
-  "colo peaksea
-
-  "let base16colorspace=256  " Access colors present in 256 colorspace"
-  "colo base16-railscasts
 
   " Status Bar
   set statusline=%F%m%r%h%w\ [POS=%04l,%04v][%p%%]\ [LEN=%L]
   set laststatus=2
 
   " Powerline status bar
-  let g:Powerline_stl_path_style="short"
-  let g:Powerline_symbols = 'fancy'
+  " let g:Powerline_stl_path_style="short"
+  " let g:Powerline_symbols = 'fancy'
 
   " Buffer space top/bottom
   set scrolloff=3
-
-  " iTerm insert mode cursor
-  let &t_SI = "\<Esc>]50;CursorShape=1\x7"
-  let &t_EI = "\<Esc>]50;CursorShape=0\x7"
 
   " Netrw tree view
   let g:netrw_liststyle=3
   let g:netrw_browse_split=4
   let g:netrw_preview=1
   let g:netrw_winsize=30
+
+  " iTerm insert mode cursor
+  let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+  let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+
+
+
+
+
+"```````````````````````````````````````````````````````````````````````````````
+" Colors
+
+  syn on
+  set t_Co=256
+
+  function! Solarized()
+    set background=dark
+    let g:solarized_termcolors=256
+    command! TERM let g:solarized_termcolors=16 | set bg=dark | colo solarized
+    let g:solarized_contrast="high"
+    let g:solarized_visibility="high"
+    colo solarized
+  endfunction
+
+  function! Pyte()
+    set bg=light
+    colo pyte
+  endfunction
+
+  function! Base16()
+    let base16colorspace=256  " Access colors present in 256 colorspace"
+    colo base16-railscasts
+  endfunction
+
+  call Solarized()
+  " call Pyte()
+  " call Base16()
+
 
 
 
@@ -153,7 +178,6 @@ filetype plugin on
 
   " Allow vim to hide buffers w/o saving
   set hidden
-
 
   " Sometimes syntax highlighting breaks. Fix it.
   command! SSS syntax sync fromstart

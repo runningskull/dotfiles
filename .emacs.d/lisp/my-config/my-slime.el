@@ -7,7 +7,8 @@
   (define-key evil-normal-state-map ",mm" 'slime-expand-1)
   )
 
-(require 'slime-autoloads)
+; todo: is this needed?
+; (require 'slime-autoloads)
 
 (eval-after-load "slime"
   '(progn

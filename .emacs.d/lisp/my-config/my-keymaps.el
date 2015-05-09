@@ -29,6 +29,15 @@
 (define-key evil-normal-state-map ",fs12" 'hs-show-all)
 (define-key evil-normal-state-map ",fsl" 'hs-hide-level)
 
+;; Dired mode
+(defun my-dired-vinegar ()
+  (interactive)
+  (if (eq major-mode 'dired-mode)
+      (find-alternate-file "..")
+    (dired-jump)))
+(define-key evil-normal-state-map "-" 'my-dired-vinegar) 
+(evil-define-key 'normal dired-mode-map "-" 'my-dired-vinegar) 
+
 ;; Commenting
 (define-key evil-normal-state-map "gc" 'paredit-comment-dwim)
 

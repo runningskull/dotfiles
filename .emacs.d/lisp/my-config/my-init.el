@@ -43,16 +43,16 @@
 ;; ensure these are installed
 (defvar my-packages
   '(paredit
+    smex ag
     evil evil-leader evil-nerd-commenter evil-paredit
     projectile flx-ido ido-vertical-mode
     auto-complete ;ace-jump-mode 
     hideshowvis
-    scss-mode
+    scss-mode js-comint
     magit
     lua-mode
     clojure-mode cider
-    python web-mode
-    parenface-plus)
+    python web-mode)
   "A list of packages to ensure are installed at launch")
 
 (dolist (p my-packages)
@@ -78,6 +78,8 @@
 
 (global-surround-mode 1)
 
+;; ace-jump
+(setq ace-jump-mode-scope 'window)
 
 ;; recentf
 (recentf-mode 1)
@@ -108,7 +110,7 @@
 ;; ido-mode
 (ido-mode t)
 (ido-vertical-mode 1)
-(ido-ubiquitous t)
+;(ido-ubiquitous t)
 (flx-ido-mode 1)
 (setq ido-enable-prefix nil
       ido-enable-flex-matching t
@@ -119,6 +121,13 @@
       ido-handle-duplicate-virtual-buffers 2
       ido-max-prospects 30
       ido-vertical-define-keys 'C-n-C-p-up-down-left-right)
+
+(defun bind-ido-keys ()
+  (interactive)
+  (define-key ido-completion-map (kbd "C-j") 'ido-next-match)
+  (define-key ido-completion-map (kbd "C-k") 'ido-prev-match))
+
+(add-hook 'ido-setup-hook 'bind-ido-keys)
 
 
 ;; mouse in terminal

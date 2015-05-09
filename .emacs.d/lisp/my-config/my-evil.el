@@ -4,8 +4,8 @@
 (require 'my-keymaps)
 
 (setq evil-emacs-state-cursor '("orange" box))
-(setq evil-normal-state-cursor '("#ddd" box))
-(setq evil-insert-state-cursor '("#ddd" bar))
+(setq evil-normal-state-cursor '("#00FF00" box))
+(setq evil-insert-state-cursor '("#00FF00" bar))
 
 (defun my-evil-terminal-cursor-change ()
   (when (string= (getenv "TERM_PROGRAM") "iTerm.app")

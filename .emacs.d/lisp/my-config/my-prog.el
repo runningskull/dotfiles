@@ -1,7 +1,7 @@
 (add-hook 'prog-mode-hook (lambda ()
 			    (imenu-add-menubar-index)
 			    (hs-minor-mode t)
-			    (projectile-on)
+			    ;(projectile-on)
 			    (auto-complete-mode)))
 
 ;; evil keymaps
@@ -31,8 +31,8 @@
 
   (define-key evil-insert-state-map (kbd "M->") 'paredit-forward-slurp-sexp)
   (define-key evil-insert-state-map (kbd "M-<") 'paredit-forward-barf-sexp)
-  (define-key evil-insert-state-map (kbd "C-<") 'paredit-backward-slurp-sexp)
-  (define-key evil-insert-state-map (kbd "C->") 'paredit-backward-barf-sexp)
+  (define-key evil-insert-state-map (kbd "C->") 'paredit-backward-slurp-sexp)
+  (define-key evil-insert-state-map (kbd "C-<") 'paredit-backward-barf-sexp)
 
   ;; combined w/ iterm mapping, allows use of meta in terminal
   (define-key evil-normal-state-map (kbd ",,>") 'paredit-forward-slurp-sexp)
@@ -40,7 +40,7 @@
   )
 
 ;; Start with folds closed
-(add-hook 'prog-mode-hook 'evil-close-folds)
+; (add-hook 'prog-mode-hook 'evil-close-folds)
 
 (defun enable-paredit ()
   (paredit-mode)

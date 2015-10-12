@@ -2,7 +2,7 @@
 
 (add-to-list 'custom-theme-load-path "~/.emacs.d/lisp/emacs-color-theme-solarized")
 (add-to-list 'custom-theme-load-path "~/.emacs.d/lisp/color-theme-base16")
-(add-to-list 'custom-theme-load-path "~/.emacs.d/lisp/color-theme-minimal-light")
+(add-to-list 'custom-theme-load-path "~/.emacs.d/lisp/color-theme-mnml-light")
 
 (setq exec-path (append exec-path '("/usr/local/bin")))
 
@@ -46,7 +46,7 @@
     smex ag
     evil evil-leader evil-nerd-commenter evil-paredit
     projectile flx-ido ido-vertical-mode
-    auto-complete ;ace-jump-mode 
+    auto-complete avy ;ace-jump-mode 
     hideshowvis
     scss-mode js-comint
     magit
@@ -68,18 +68,39 @@
               'paredit-mode)))
 
 (require 'projectile)
+(require 'hideshow)
 (require 'hideshowvis)
-(require 'surround)
 (require 'ido-vertical-mode)
 (require 'flx-ido)
 (require 'recentf)
-(require 'web-mode)
-(require 'ace-jump-mode)
+;; (require 'web-mode)
+(require 'expand-region)
+(require 'evil-surround) ; cloned repo
+;;(require 'ace-jump-mode)
 
-(global-surround-mode 1)
+;; my plugins
+(require 'swap-windows)
+
+
+
+;;;; Color Themes
+
+;; (load-theme 'solarized-dark t)
+;; (load-theme 'base16-ocean-dark t)
+(load-theme 'mnml-light t)
+(set-default-font "Source Code Pro-12")
+
+
+;;;; Mode Settings
+
+(global-evil-surround-mode 1)
 
 ;; ace-jump
-(setq ace-jump-mode-scope 'window)
+                                        ;(setq ace-jump-mode-scope 'window)
+
+;; avy mode (ace-jump replacement)
+(setq avy-keys (number-sequence ?a ?z))
+(setq avy-all-windows nil)
 
 ;; recentf
 (recentf-mode 1)
@@ -130,12 +151,116 @@
 (add-hook 'ido-setup-hook 'bind-ido-keys)
 
 
-;; mouse in terminal
+;; gnu-go
+(defun enable-gnugo-image-display ()
+  (interactive)
+  (require 'gnugo-xpms))
+
+
+;; expand-region
+(defun limited-expand-region ()
+  (setq er/try-expand-list '(er/mark-inside-pairs
+                             er/mark-outside-pairs
+                             er/mark-defun)))
+
+(add-hook 'paredit-mode-hook 'limited-expand-region)
+
+
+;; spaceline
+(setq ns-use-srgb-colorspace nil)
+(setq powerline-default-separator 'slant) 
+(setq spaceline-separator-dir-left '(right . right))
+(setq spaceline-separator-dir-right '(left . left))
+(setq spaceline-minor-modes-separator " ")
+(require 'powerline)
+(require 'powerline-evil)
+(require 'spaceline-config)
+(spaceline-emacs-theme)
+
+(eval-after-load "vc-hooks"
+  '(defadvice vc-mode-line (after sml/after-vc-mode-line-advice () activate)
+     "Color `vc-mode'."
+     (when (stringp vc-mode)
+       (let ((noback (concat "↣" (replace-regexp-in-string (format "^ %s[:-]" (vc-backend buffer-file-name)) "" vc-mode))))
+         (setq vc-mode
+               (propertize noback
+                           'face (cond ((string-match "^ -" noback)    'sml/vc)
+                                       ((string-match "^ [:@]" noback) 'sml/vc-edited)
+                                       ((string-match "^ [!\\?]" noback) 'sml/modified))))))))
+
+
+
+;; diminish
+(require 'diminish) 
+(eval-after-load "paredit" '(diminish 'paredit-mode)) 
+(eval-after-load "undo-tree" '(diminish 'undo-tree-mode)) 
+(eval-after-load "auto-complete" '(diminish 'auto-complete-mode)) 
+(eval-after-load "magit" '(diminish 'magit-auto-revert-mode)) 
+(eval-after-load "aggressive-indent" '(diminish 'aggressive-indent-mode))
+(eval-after-load 'hideshow '(diminish 'hs-minor-mode)) 
+(eval-after-load 'eldoc '(diminish 'eldoc-mode))
+(setq projectile-mode-line '(:eval (format " «%s»" (projectile-project-name)))) 
+(setq spaceline-highlight-face #'spaceline-highlight-face-evil-state)
+(spaceline-toggle-buffer-encoding-abbrev-off)
+
+
+
+;; Mouse in terminal
 (unless window-system
   (require 'mouse)
   (xterm-mouse-mode t)
   (defun track-mouse (e))
   (setq mouse-sel-mode t))
+
+
+
+(defun spaceline-jr-theme (&rest additional-segments)
+  "Install a modeline close to the one used by Spacemacs, but which
+looks better without third-party dependencies.
+ADDITIONAL-SEGMENTS are inserted on the right, between `global' and
+`buffer-position'."
+  (spaceline-install
+
+   '(((((workspace-number window-number) :separator "|")
+       buffer-modified
+       buffer-size)
+      :face highlight-face)
+     anzu
+     ((buffer-id remote-host)
+      :face highlight-face)
+     major-mode
+     ((flycheck-error flycheck-warning flycheck-info)
+      :when active)
+     (((minor-modes :separator spaceline-minor-modes-separator)
+       process)
+      :when active)
+     (erc-track :when active)
+     (version-control :when active)
+     (org-pomodoro :when active)
+     (org-clock :when active)
+     nyan-cat)
+
+   `((battery :when active)
+     selection-info
+     ((buffer-encoding-abbrev
+       point-position
+       line-column)
+      :separator " | ")
+     (global :when active)
+     ,@additional-segments
+     buffer-position
+     hud)))
+
+
+(defun dim-inactive-window ()
+  (interactive)
+  (font-lock-mode))
+
+(defun brighten-active-window ()
+  (interactive)
+  (font-lock-mode))
+
+(require 'auto-dim-other-buffers)
 
 
 (provide 'my-init)

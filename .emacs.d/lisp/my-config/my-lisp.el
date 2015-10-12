@@ -15,7 +15,10 @@
 ;; Common Lisp
 (defun set-inferior-lisp-sbcl ()
   (setq inferior-lisp-program "/usr/local/bin/sbcl"))
+
 (add-hook 'lisp-mode-hook 'set-inferior-lisp-sbcl)
+(add-hook 'lisp-mode-hook 'global-aggressive-indent-mode)
+(add-hook 'clojure-mode-hook 'global-aggressive-indent-mode)
 
 
 (provide 'my-lisp)

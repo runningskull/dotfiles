@@ -4,7 +4,7 @@
 (defun compojure-indents ()
   ;; nicer indentation for compojure routes
   (define-clojure-indent
-    ; compojure
+    ;; compojure
     (defroutes 'defun)
     (GET 2)
     (POST 2)
@@ -14,7 +14,7 @@
     (ANY 2)
     (context 2)
 
-    ; clj-api
+    ;; clj-api
     (GET* 2)
     (POST* 2)
     (PUT* 2)
@@ -26,10 +26,7 @@
     (defapi 'defun)
     (swagger-ui 'defun)
     (swagger-docs 'defun)
-    (swaggered 'defun)
-    
-    ; rafl stuff
-    (add-id 'defun)))
+    (swaggered 'defun)))
 
 (defun comment-dwim-line (&optional arg)
   "Replacement for the comment-dwim command.
@@ -47,6 +44,12 @@
   (cider-interactive-eval
    "(require 'clojure.tools.namespace.repl)
     (clojure.tools.namespace.repl/refresh)"))
+
+(defun cider-figwheel-repl ()
+  (interactive)
+  (cider-interactive-eval
+   "(use 'figwheel-sidecar.repl-api)
+    (cljs-repl)"))
 
 (defun PRE-cider-insert-defun-in-repl (&optional arg)
   (interactive)
@@ -98,6 +101,24 @@
 (add-hook 'clojure-mode-hook 'evil-clojure-keymaps)
 (add-hook 'clojure-mode-hook 'set-inferior-lisp-clojure)
 (add-hook 'clojure-mode-hook 'compojure-indents)
+
+
+(defun my--cider--modeline-info ()
+  "Return info for the `cider-mode' modeline.
+Info contains project name and host:port endpoint."
+  (-if-let (current-connection (ignore-errors (cider-current-connection)))
+      (with-current-buffer current-connection
+        (concat
+         (when cider-repl-type
+           (concat cider-repl-type ":"))
+         (when cider-mode-line-show-connection
+           (format "%s" (pcase (car nrepl-endpoint)
+                          ("localhost" "")
+                          (x x))))))
+    "norepl")) 
+
+(setq cider-mode-line '(:eval (format " $%s" (my--cider--modeline-info)))) 
+
 
 (provide 'my-clojure)
 

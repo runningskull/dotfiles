@@ -1,63 +1,73 @@
-################################################################################
-# Zshuery (https://github.com/myfreeweb/zshuery)
-
-source ~/projects/_cloned/zshuery/zshuery.sh
-load_defaults
-load_aliases
-load_completion ~/projects/_cloned/zshuery/completion
-load_correction
-
-export EDITOR=vim
-
-chpwd() {
-    update_terminal_cwd
-}
+## Use zgen
+DISABLE_AUTO_UPDATE="true"
+. "${HOME}/.zsh/zgen.zsh"
 
 
-zstyle ':completion:*' menu select
-zstyle ':git-info:' action    ' %F{white}(%s)%f'
-zstyle ':git-info:' ahead     ' %F{red}ahead%f'
-zstyle ':git-info:' behind    ' %F{red}behind%f%'
-zstyle ':git-info:' branch    '%F{green}%b%f'
-zstyle ':git-info:' dirty     ' %F{red}dirty%f'
-zstyle ':git-info:' stashed   ' %F{yellow}stashed%f'
-zstyle ':git-info:' unmerged  ' %F{red}unmerged%f'
-zstyle ':git-info:' prompt    ' %F{black}➜%f %b%s%S%D%U%A%B'
+##------------------------------------------------------------------------------
+## zsh defaults
 
-
-export DEFAULT_USER='runningskull'
-source ~/.zsh/git.sh
-source ~/.zsh/prompt.sh
+unsetopt share_history
 
 
 
-################################################################################
-# My Customizations
-
-export WORKON_HOME=$HOME/.virtualenvs
-source /usr/local/bin/virtualenvwrapper.sh
-
-# Use MacVim's vim binary
-alias vim='/Applications/MacVim.app/Contents/MacOS/Vim'
-
-# New virtualenv using python 3
-alias mkve3='mkvirtualenv --no-site-packages --python=/usr/local/bin/python3'
-
-# Utils
-alias whichports='lsof -i | grep LISTEN'
-function b64d() { echo "$@" | base64 -D ;}
-alias ls='ls -G'
-
-# iTerm Helpers
-function tabtitle() { echo -ne "\033]1;$@\007" ;}
-
-alias gg='git log --oneline --abbrev-commit --all --graph --decorate --color'
-
-#source ~/nvm/nvm.sh
+##------------------------------------------------------------------------------
+## Path
 
 export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 
 
-### Added by the Heroku Toolbelt
-export PATH="/usr/local/heroku/bin:$PATH"
+##------------------------------------------------------------------------------
+## Editors 
+
+export EDITOR=nvim
+
+# NeoVim!
+alias vim="nvim"
+alias v="nvim"
+
+# Emacs!
+alias Emacs="open /Applications/Emacs.app"
+alias E="open /Applications/Emacs.app"
+alias e="emacs"
+
+
+
+##------------------------------------------------------------------------------
+## Utils
+
+# std unix
+alias ls='ls -G'  # colors
+alias ll='ls -lG'
+alias c='clear'
+alias rm='rm -i' # delete to trash
+
+# dev stuff
+alias g='git'
+
+# directory aliases
+hash -d p=~/projects/
+hash -d r=~/projects/_rafflecopter
+hash -d f=~/projects/_forked
+hash -d c=~/projects/_cloned
+
+
+
+##------------------------------------------------------------------------------
+## Dev Environment
+
+alias lein='rlwrap /usr/local/bin/lein'
+
+# necessary ugliness
+function usegpg () { killall gpg-agent ssh-agent; eval $(gpg-agent --daemon --enable-ssh-support) }
+
+# node.js version manager
+export NVM_DIR="/Users/runningskull/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
+
+
+
+##------------------------------------------------------------------------------
+## Silliness
+function spam() { python -c "print ':$@: ' * 500" | pbcopy }
+

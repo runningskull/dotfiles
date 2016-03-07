@@ -5,44 +5,55 @@ filetype plugin on
 
 
 "``````````````````````````````````````````````````````````````````````````````
-" Vundle 
+" vim-plug 
 
-  " Required boilerplate
-  filetype off
-  set rtp+=~/.vim/bundle/vundle/
-  call vundle#rc()
-  Bundle 'gmarik/vundle'
+  call plug#begin('~/.vim/plugged')
 
   " Rougly in order of most life-changing
-  Bundle 'kien/ctrlp.vim'
-  Bundle 'Lokaltog/vim-easymotion'
-  Bundle 'tpope/vim-fugitive'
-  Bundle 'tpope/vim-commentary'
-  Bundle 'mileszs/ack.vim'
-  Bundle 'tpope/vim-surround'
-  Bundle 'bling/vim-airline'
-  " Bundle 'rson/vim-conque'
+  Plug 'kien/ctrlp.vim'
+  Plug 'Lokaltog/vim-easymotion'
+  Plug 'tpope/vim-fugitive'
+  Plug 'tpope/vim-commentary'
+  Plug 'tpope/vim-surround'
+  Plug 'bling/vim-airline'
+  Plug 'rking/ag.vim'
+  Plug 'tpope/vim-dispatch'
 
   " Test-driving
-  Bundle 'Raimondi/delimitMate'
+  Plug 'Raimondi/delimitMate'
+  Plug 'tpope/vim-obsession'
+  Plug 'tpope/vim-vinegar'
+  Plug 'mattn/webapi-vim'
+  Plug 'jtratner/vim-flavored-markdown'
+  Plug 'csscomb/vim-csscomb'
+  Plug 'ciaranm/detectindent'
+  Plug 'michaeljsmith/vim-indent-object'
+  Plug 'wesQ3/vim-windowswap'
 
   " Colors
-  Bundle 'runningskull/vim-colors-solarized'
-  Bundle 'chriskempson/base16-vim'
-  Bundle 'vim-scripts/ironman.vim'
-  Bundle 'therubymug/vim-pyte'
+  Plug 'runningskull/vim-colors-solarized'
+  Plug 'reedes/vim-colors-pencil'
+  Plug 'w0ng/vim-hybrid'
 
   " Language Runtimes
-  Bundle 'tpope/vim-markdown'
-  Bundle 'jnwhiteh/vim-golang'
-  Bundle 'digitaltoad/vim-jade'
-  Bundle 'groenewege/vim-less'
-  Bundle 'kchmck/vim-coffee-script'
-  Bundle 'vim-scripts/glsl.vim'
-  Bundle 'juvenn/mustache.vim'
-  Bundle 'jnwhiteh/vim-golang'
+  Plug 'pangloss/vim-javascript'
+  Plug 'tpope/vim-markdown'
+  Plug 'jnwhiteh/vim-golang'
+  Plug 'digitaltoad/vim-jade'
+  Plug 'groenewege/vim-less'
+  Plug 'kchmck/vim-coffee-script'
+  Plug 'vim-scripts/glsl.vim'
+  Plug 'runningskull/vim-mustache-handlebars'
+  Plug 'jnwhiteh/vim-golang'
+  Plug 'guns/vim-clojure-static'
+  Plug 'vim-scripts/django.vim'
+  " Plug 'cakebaker/scss-syntax.vim'
+  Plug 'vim-scripts/lua.vim'
+  Plug 'xolox/vim-misc'
+  Plug 'ingydotnet/yaml-vim'
+  Plug 'hail2u/vim-css3-syntax'
 
-  filetype plugin on
+  call plug#end()
   
 
 
@@ -68,7 +79,54 @@ filetype plugin on
   map <leader><leader>s :vsp<cr> <c-l>:e /tmp/scratch-<c-r>=strftime("%Y%m%d%H%M")<cr><cr>i
 
   " Airline
-  let g:airline_powerline_fonts = 1
+  " let g:airline_powerline_fonts = 1
+  let g:airline_left_sep = ' '
+  let g:airline_right_sep = ' '
+
+  " Use system clipboard
+  set clipboard=unnamed
+
+  " Sane regex searching
+  map <leader>/ /\v 
+
+  " Ultisnips
+  let g:UltiSnipsExpandTrigger="<c-l>"
+  let g:UltiSnipsJumpForwardTrigger="<tab>"
+  let g:UltiSnipsJumpBackwardTrigger="<c-tab>"
+
+  " Shortcuts
+  map <leader>w <c-w>
+  map <leader>js :set syntax=javascript<cr>
+
+  set noequalalways
+
+  "" let g:airline#extensions#whitespace#enabled|show_message=0
+
+  " Lua plugin is too zealous
+  let g:lua_complete_dynamic=0
+
+  " syntax checking is handy, but there's a but that
+  " causes random lines to turn red, even after error
+  " is fixed. could remove this if that gets resolved.
+  let g:lua_check_syntax=0
+
+  " CSS uses hyphens & stuff
+  autocmd FileType css,scss set iskeyword=@,48-57,_,-,?,!,192-255
+
+  " custom file extensions
+  autocmd BufNewFile,BufRead *.cfg set filetype=yaml
+  autocmd BufNewFile,BufRead *.hhtml set filetype=html.handlebars
+  autocmd BufNewFile,BufRead *.cljx set filetype=clojure
+
+  let g:mustache_operators = 1
+
+  map <leader>cs mhva{:CSScomb<cr>'h
+
+
+  "```````````````
+  " Projects
+  
+  " source ~/.vim/rafflecopter.vim
 
 
 
@@ -87,8 +145,8 @@ filetype plugin on
   set vb
 
   " paste in the terminal
-  nnoremap <F2> :set invpaste paste?<cr>
-  set pastetoggle=<F2>
+  nnoremap <leader>p :set invpaste paste?<cr>i
+  set pastetoggle=<leader>p
   set showmode
 
   " we don't need no steeenking scrollbars
@@ -112,14 +170,21 @@ filetype plugin on
   set scrolloff=3
 
   " Netrw tree view
-  let g:netrw_liststyle=3
-  let g:netrw_browse_split=4
-  let g:netrw_preview=1
-  let g:netrw_winsize=30
+  " let g:netrw_liststyle=3
+  " let g:netrw_browse_split=4
+  " let g:netrw_preview=1
+  " let g:netrw_winsize=30
 
   " iTerm insert mode cursor
-  let &t_SI = "\<Esc>]50;CursorShape=1\x7"
-  let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+ if exists('$TMUX')
+    let &t_SI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=1\x7\<Esc>\\"
+    let &t_EI = "\<Esc>Ptmux;\<Esc>\<Esc>]50;CursorShape=0\x7\<Esc>\\"
+  else
+    let &t_SI = "\<Esc>]50;CursorShape=1\x7"
+    let &t_EI = "\<Esc>]50;CursorShape=0\x7"
+  endif 
+
+  let $NVIM_TUI_ENABLE_CURSOR_SHAPE=1
 
 
 
@@ -132,28 +197,33 @@ filetype plugin on
   set t_Co=256
 
   function! Solarized()
+    " set background=light
     set background=dark
     let g:solarized_termcolors=256
-    command! TERM let g:solarized_termcolors=16 | set bg=dark | colo solarized
     let g:solarized_contrast="high"
     let g:solarized_visibility="high"
     colo solarized
   endfunction
 
-  function! Pyte()
+  function! Pencil()
     set bg=light
-    colo pyte
+    colo pencil
   endfunction
 
-  function! Base16()
-    let base16colorspace=256  " Access colors present in 256 colorspace"
-    colo base16-railscasts
+  function! Smyck()
+    set bg=dark
+    colo smyck
   endfunction
 
-  call Solarized()
-  " call Pyte()
-  " call Base16()
+  " call Solarized()
+  call Smyck()
 
+  command! SOL let g:solarized_termcolors=16 | colo solarized | set bg=dark
+  command! PEN set bg=light | colo pencil
+  command! SMY set bg=dark | colo smyck
+
+  command! LIGHT set bg=light
+  command! DARK set bg=dark
 
 
 
@@ -195,22 +265,29 @@ filetype plugin on
   set autoindent
   "set smartindent
   set expandtab
-  set sts=4
-  set ts=4
-  set sw=4
+  set sts=2
+  set ts=2
+  set sw=2
+
+  command! TABS set noexpandtab|set sts=0|set ts=4|set sw=0
 
   " Detect tabs or spaces
   set smarttab
 
   " Line numbers
-  set nu
-  set numberwidth=5
+  " set nu
+  " set numberwidth=5
+  set nonu
+  set foldcolumn=1
 
   " Line wrapping is for wimps :)
   set nowrap
 
   " remap native vim autocomplete shortcut
   inoremap <c-\> <c-x><c-n><down>
+
+  inoremap <C-Space> <C-x><C-o><down>
+  inoremap <C-@> <C-Space><down>
 
   " For navigating context menus w/o using arrows
   inoremap <c-j> <down>
@@ -251,6 +328,8 @@ filetype plugin on
   noremap <leader>fj zjza
   noremap <leader>fk zkza
 
+  set fillchars="fold: "
+
 
 
 
@@ -261,7 +340,7 @@ filetype plugin on
   "noremap \ :ls<cr>:b<space>
 
   " Quickly switch between 2 buffers (cancels ZZ to close)
-  noremap Z :b#<cr>
+  noremap <leader>z :b#<cr>
 
   " ctrl-p is all that and a bag of chips
   noremap <c-\> :CtrlPMRU<cr>
@@ -286,7 +365,10 @@ filetype plugin on
   noremap <c-k> <c-w>k
 
   " I like Ack (http://www.vim.org/scripts/script.php?script_id=2572)
-  noremap <leader>s :Ack<space>
+  " noremap <leader>s :Ack<space>
+
+  " Using silver searcher instead
+  noremap <leader>s :Ag!<space>
 
   " navigate quickfix list
   noremap <leader>ee :cc
@@ -298,11 +380,13 @@ filetype plugin on
 
   " Ignore built files
   let g:ctrlp_custom_ignore = {
-  \ 'dir':  'dist$',
+  \ 'dir':  'dist$\|tmp$'
   \ }
 
+  let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
+
   " quicker suspend
-  nnoremap <leader>z <c-z>
+  nnoremap Z <c-z>
 
 
 
@@ -322,6 +406,9 @@ filetype plugin on
   " GLSL
   au BufNewFile,BufRead *.frag,*.vert,*.fp,*.vp,*.glsl setf glsl 
 
+  " Django Templates
+  au BufNewFile,BufRead *.html command! HTML setfiletype htmldjango
+
 
 
 
@@ -335,3 +422,65 @@ filetype plugin on
 
 
 " vim: set fdm=indent ts=2 sw=2:
+
+" HTML 5 tags
+syn keyword htmlTagName contained article aside audio bb canvas command datagrid
+syn keyword htmlTagName contained datalist details dialog embed figure footer
+syn keyword htmlTagName contained header hgroup keygen mark meter nav output
+syn keyword htmlTagName contained progress time ruby rt rp section time video
+syn keyword htmlTagName contained source figcaption
+
+" HTML 5 arguments
+syn keyword htmlArg contained autofocus autocomplete placeholder min max step
+syn keyword htmlArg contained contenteditable contextmenu draggable hidden item
+syn keyword htmlArg contained itemprop list sandbox subject spellcheck
+syn keyword htmlArg contained novalidate seamless pattern formtarget manifest
+syn keyword htmlArg contained formaction formenctype formmethod formnovalidate
+syn keyword htmlArg contained sizes scoped async reversed sandbox srcdoc
+syn keyword htmlArg contained hidden role
+syn match   htmlArg "\<\(aria-[\-a-zA-Z0-9_]\+\)=" contained
+syn match   htmlArg contained "\s*data-[-a-zA-Z0-9_]\+"
+
+
+
+
+
+
+"" experiment
+
+" Set a nicer foldtext function
+set foldtext=MyFoldText()
+function! MyFoldText()
+  let line = getline(v:foldstart)
+  if match( line, '^[ \t]*\(\/\*\|\/\/\)[*/\\]*[ \t]*$' ) == 0
+    let initial = substitute( line, '^\([ \t]\)*\(\/\*\|\/\/\)\(.*\)', '\1\2', '' )
+    let linenum = v:foldstart + 1
+    while linenum < v:foldend
+      let line = getline( linenum )
+      let comment_content = substitute( line, '^\([ \t\/\*]*\)\(.*\)$', '\2', 'g' )
+      if comment_content != ''
+        break
+      endif
+      let linenum = linenum + 1
+    endwhile
+    let sub = initial . ' ' . comment_content
+  else
+    let sub = line
+    let startbrace = substitute( line, '^.*{[ \t]*$', '{', 'g')
+    if startbrace == '{'
+      let line = getline(v:foldend)
+      let endbrace = substitute( line, '^[ \t]*}\(.*\)$', '}', 'g')
+      if endbrace == '}'
+        let sub = sub.substitute( line, '^[ \t]*}\(.*\)$', '...}\1', 'g')
+      endif
+    endif
+  endif
+  let n = v:foldend - v:foldstart + 1
+  let info = " " . n . " lines"
+  let sub = sub . "                                                                                                                  "
+  let num_w = getwinvar( 0, '&number' ) * getwinvar( 0, '&numberwidth' )
+  let fold_w = getwinvar( 0, '&foldcolumn' )
+  let sub = strpart( sub, 0, winwidth(0) - strlen( info ) - num_w - fold_w - 1 )
+  " return sub . info
+  return info
+endfunction

@@ -13,30 +13,35 @@ filetype plugin on
   Plug 'kien/ctrlp.vim'
   Plug 'Lokaltog/vim-easymotion'
   Plug 'tpope/vim-fugitive'
+  Plug 'tpope/vim-vinegar'
   Plug 'tpope/vim-commentary'
   Plug 'tpope/vim-surround'
-  Plug 'bling/vim-airline'
   Plug 'rking/ag.vim'
-  Plug 'tpope/vim-dispatch'
-
-  " Test-driving
-  Plug 'Raimondi/delimitMate'
   Plug 'tpope/vim-obsession'
-  Plug 'tpope/vim-vinegar'
-  Plug 'mattn/webapi-vim'
-  Plug 'jtratner/vim-flavored-markdown'
-  Plug 'csscomb/vim-csscomb'
+  Plug 'bling/vim-airline'
+  " Plug 'tpope/vim-dispatch'
+  Plug 'rhysd/conflict-marker.vim'
   Plug 'ciaranm/detectindent'
-  Plug 'michaeljsmith/vim-indent-object'
-  Plug 'wesQ3/vim-windowswap'
 
   " Colors
-  Plug 'runningskull/vim-colors-solarized'
   Plug 'reedes/vim-colors-pencil'
-  Plug 'w0ng/vim-hybrid'
+
+  " Test-driving
+  Plug 'davidhalter/jedi-vim'
+  Plug 'jtratner/vim-flavored-markdown'
+  Plug 'csscomb/vim-csscomb'
+  " Plug 'wesQ3/vim-windowswap'
+  Plug 'benekastah/neomake'
+  " Plug 'junegunn/vim-easy-align'
+  " Plug 'metakirby5/codi.vim'
+  " Plug 'jiangmiao/auto-pairs'
+
+  " Colors
+  " Plug 'runningskull/vim-colors-solarized'
+  " Plug 'reedes/vim-colors-pencil'
+  " Plug 'w0ng/vim-hybrid'
 
   " Language Runtimes
-  Plug 'pangloss/vim-javascript'
   Plug 'tpope/vim-markdown'
   Plug 'jnwhiteh/vim-golang'
   Plug 'digitaltoad/vim-jade'
@@ -47,11 +52,16 @@ filetype plugin on
   Plug 'jnwhiteh/vim-golang'
   Plug 'guns/vim-clojure-static'
   Plug 'vim-scripts/django.vim'
-  " Plug 'cakebaker/scss-syntax.vim'
   Plug 'vim-scripts/lua.vim'
   Plug 'xolox/vim-misc'
   Plug 'ingydotnet/yaml-vim'
   Plug 'hail2u/vim-css3-syntax'
+  Plug 'keith/swift.vim'
+  Plug 'vim-perl/vim-perl'
+
+  Plug 'ternjs/tern_for_vim'
+  Plug 'pangloss/vim-javascript'
+  Plug 'nicklasos/vim-jsx-riot'
 
   call plug#end()
   
@@ -69,19 +79,15 @@ filetype plugin on
   noremap <leader>2 :set shiftwidth=2<cr>
   noremap <leader>4 :set shiftwidth=4<cr>
 
-  " delimitMate nice behavior on newlines
-  let delimitMate_expand_cr = 1
-
   " File browsing sidebar
   command! Files Vex | silent vertical resize 30 | set winfixwidth
 
   " Open a scratch buffer
-  map <leader><leader>s :vsp<cr> <c-l>:e /tmp/scratch-<c-r>=strftime("%Y%m%d%H%M")<cr><cr>i
+  map <leader>bs :e /tmp/scratch-<c-r>=strftime("%Y%m%d%H%M")<cr><cr>i
 
   " Airline
-  " let g:airline_powerline_fonts = 1
-  let g:airline_left_sep = ' '
-  let g:airline_right_sep = ' '
+  let g:airline_left_sep = ''
+  let g:airline_right_sep = ''
 
   " Use system clipboard
   set clipboard=unnamed
@@ -89,18 +95,11 @@ filetype plugin on
   " Sane regex searching
   map <leader>/ /\v 
 
-  " Ultisnips
-  let g:UltiSnipsExpandTrigger="<c-l>"
-  let g:UltiSnipsJumpForwardTrigger="<tab>"
-  let g:UltiSnipsJumpBackwardTrigger="<c-tab>"
-
   " Shortcuts
   map <leader>w <c-w>
-  map <leader>js :set syntax=javascript<cr>
 
+  " Window layout
   set noequalalways
-
-  "" let g:airline#extensions#whitespace#enabled|show_message=0
 
   " Lua plugin is too zealous
   let g:lua_complete_dynamic=0
@@ -117,16 +116,13 @@ filetype plugin on
   autocmd BufNewFile,BufRead *.cfg set filetype=yaml
   autocmd BufNewFile,BufRead *.hhtml set filetype=html.handlebars
   autocmd BufNewFile,BufRead *.cljx set filetype=clojure
+  autocmd BufNewFile,BufRead *.tag set filetype=javascript
 
   let g:mustache_operators = 1
 
-  map <leader>cs mhva{:CSScomb<cr>'h
-
-
-  "```````````````
-  " Projects
-  
-  " source ~/.vim/rafflecopter.vim
+  " EasyAlign
+  xmap ga <Plug>(EasyAlign)
+  nmap ga <Plug>(EasyAlign)
 
 
 
@@ -154,6 +150,9 @@ filetype plugin on
   set guioptions-=R
   set guioptions-=l
   set guioptions-=L
+
+  " fugitive status appears in preview window
+  set previewheight=25
 
   " such font.     so letters. wow
   set guifont=Source\ Code\ Pro\ for\ Powerline:h12
@@ -251,6 +250,7 @@ filetype plugin on
 
   " Sometimes syntax highlighting breaks. Fix it.
   command! SSS syntax sync fromstart
+  noremap ,f, :syntax sync fromstart<cr> 
 
 
 
@@ -263,28 +263,25 @@ filetype plugin on
 
   " Indenting
   set autoindent
-  "set smartindent
   set expandtab
   set sts=2
   set ts=2
   set sw=2
 
-  command! TABS set noexpandtab|set sts=0|set ts=4|set sw=0
+  " command! TABS set noexpandtab|set sts=0|set ts=4|set sw=0
 
   " Detect tabs or spaces
   set smarttab
 
   " Line numbers
-  " set nu
-  " set numberwidth=5
   set nonu
-  set foldcolumn=1
+  set foldcolumn=0
 
   " Line wrapping is for wimps :)
   set nowrap
 
   " remap native vim autocomplete shortcut
-  inoremap <c-\> <c-x><c-n><down>
+  inoremap <c-\> <c-x><c-o>
 
   inoremap <C-Space> <C-x><C-o><down>
   inoremap <C-@> <C-Space><down>
@@ -308,6 +305,9 @@ filetype plugin on
 
 "``````````````````````````````````````````````````````````````````````````````
 " Folding
+
+  " Open folds by default
+  autocmd BufWinEnter * normal zR
 
   " Indent folding is the KISS solution
   set foldmethod=indent
@@ -350,6 +350,9 @@ filetype plugin on
   set completeopt=longest,menuone
   set wildmode=list:longest
 
+  " omnicompletion - more friendly enter key
+  inoremap <expr> <CR> pumvisible() ? "\<C-y>" : "\<C-g>u\<CR>"
+
   " Ignore certain files in autocomplete
   set wildignore+=*.png,*.gif,*.jpg,*.psd
   set wildignore+=*.pyc,.git
@@ -377,6 +380,8 @@ filetype plugin on
   " Make marks a little easier
   nnoremap ' `
   nnoremap ` '
+  vnoremap ' `
+  vnoremap ` '
 
   " Ignore built files
   let g:ctrlp_custom_ignore = {
@@ -390,12 +395,19 @@ filetype plugin on
 
 
 
+"```````````````````````````````````````````````````````````````````````````````
+" Sessions
+
+nnoremap <leader>os :Obsession ~/.vim/sessions/
+nnoremap <leader>oo :source ~/.vim/sessions/
+
+
 
 "``````````````````````````````````````````````````````````````````````````````
 " Specific Languages/Filetypes
 
   " Wrap lines. Useful for editing prose (blog post, email, comments, etc...)
-  command! WRAP set wrap|set formatoptions=l|set lbr|map j gj|map k gk
+  " command! WRAP set wrap|set formatoptions=l|set lbr|map j gj|map k gk
 
   " Close HTML Tags
   inoremap /<tab> </<c-x><c-o><esc>a
@@ -476,11 +488,28 @@ function! MyFoldText()
     endif
   endif
   let n = v:foldend - v:foldstart + 1
-  let info = " " . n . " lines"
-  let sub = sub . "                                                                                                                  "
+  let info = n
+  " let sub = sub . "                                                                                                                  "
+  let sub = "                                                                                                                  "
   let num_w = getwinvar( 0, '&number' ) * getwinvar( 0, '&numberwidth' )
   let fold_w = getwinvar( 0, '&foldcolumn' )
   let sub = strpart( sub, 0, winwidth(0) - strlen( info ) - num_w - fold_w - 1 )
+  let subin = strpart( sub, 0, n - 1 )
   " return sub . info
-  return info
+  return "── " . info . " ──"
 endfunction
+
+function! AtomStyleFolding(linenum)
+  let indent = indent(a:linenum) / 2
+  let indentBelow = indent(a:linenum + 1) / 2
+  if indentBelow > indent
+    return indentBelow
+  elseif indentBelow < indent
+    return "<" . indent
+  else
+    return indent
+  endif
+endfunction
+
+" set foldexpr=AtomStyleFolding(v:lnum)
+" set foldmethod=expr

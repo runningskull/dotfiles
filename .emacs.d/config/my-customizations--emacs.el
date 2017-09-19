@@ -78,14 +78,115 @@
     ("#dc322f" "#cb4b16" "#b58900" "#546E00" "#B4C342" "#00629D" "#2aa198" "#d33682" "#6c71c4")))
  '(package-selected-packages
    (quote
-    (geiser quack pbcopy dracula-theme doom-themes ace-window paredit company evil cider hideshowvis avy-mode mustache-mode paxedit exec-path-from-shell which-key web-mode visual-fill-column spaceline solarized-theme smex scss-mode rich-minority projectile powerline-evil popwin parenface-plus neotree names monochrome-theme mo-git-blame material-theme markdown-mode magit lua-mode js-comint ido-vertical-mode ido-ubiquitous gnugo frame-cmds flx-ido expand-region evil-paredit evil-nerd-commenter evil-leader diminish css-mode css-comb company-restclient company-quickhelp company-flx clj-refactor badger-theme avy ag)))
+    (ido-everywhere js2-mode geiser quack pbcopy dracula-theme doom-themes ace-window paredit company evil cider hideshowvis avy-mode mustache-mode paxedit exec-path-from-shell which-key web-mode visual-fill-column spaceline solarized-theme smex scss-mode rich-minority projectile powerline-evil popwin parenface-plus neotree names monochrome-theme mo-git-blame material-theme markdown-mode magit lua-mode js-comint ido-vertical-mode gnugo frame-cmds flx-ido expand-region evil-paredit evil-nerd-commenter evil-leader diminish css-mode css-comb company-restclient company-quickhelp company-flx clj-refactor badger-theme avy ag)))
  '(pos-tip-background-color "#eee8d5")
  '(pos-tip-foreground-color "#586e75")
  '(powerline-height 15)
  '(recentf-max-saved-items 1000)
  '(safe-local-variable-values
    (quote
-    ((cider-refresh-after-fn . "user/start")
+    ((eval put-clojure-indent
+	   (quote mc/find-maps)
+	   1)
+     (eval put-clojure-indent
+	   (quote mc/insert)
+	   1)
+     (eval put-clojure-indent
+	   (quote mc/find-one-as-map)
+	   1)
+     (eval put-clojure-indent
+	   (quote mc/find-and-modify)
+	   1)
+     (eval put-clojure-indent
+	   (quote mc/update)
+	   1)
+     (eval put-clojure-indent
+	   (quote wmong)
+	   1)
+     (eval put-clojure-indent
+	   (quote wmong)
+	   2)
+     (eval put-clojure-indent wmong 2)
+     (css-indent-offset . 2)
+     (css-indent-offset 2)
+     (eval put-clojure-indent
+	   (quote OPTIONS*)
+	   (quote defun))
+     (eval put-clojure-indent
+	   (quote DELETE*)
+	   (quote defun))
+     (eval put-clojure-indent
+	   (quote PATCH*)
+	   (quote defun))
+     (eval put-clojure-indent
+	   (quote POST*)
+	   (quote defun))
+     (eval put-clojure-indent
+	   (quote HEAD*)
+	   (quote defun))
+     (eval put-clojure-indent
+	   (quote PUT*)
+	   (quote defun))
+     (eval put-clojure-indent
+	   (quote ANY*)
+	   (quote defun))
+     (eval put-clojure-indent
+	   (quote defroutes*)
+	   (quote defun))
+     (eval put-clojure-indent
+	   (quote GET*)
+	   (quote defun))
+     (eval put-clojure-indent
+	   (quote middlewares)
+	   (quote defun)
+	   (quote defroutes*)
+	   (quote defun)
+	   (quote context*)
+	   (quote defun)
+	   (quote GET*)
+	   (quote defun)
+	   (quote ANY*)
+	   (quote defun)
+	   (quote PUT*)
+	   (quote defun)
+	   (quote HEAD*)
+	   (quote defun)
+	   (quote POST*)
+	   (quote defun)
+	   (quote PATCH*)
+	   (quote defun)
+	   (quote DELETE*)
+	   (quote defun)
+	   (quote OPTIONS*)
+	   (quote defun))
+     (eval put-clojure-indent
+	   (quote middlewares)
+	   (quote defun)
+	   (quote context*)
+	   (quote defun)
+	   (quote GET*)
+	   (quote defun)
+	   (quote ANY*)
+	   (quote defun)
+	   (quote PUT*)
+	   (quote defun)
+	   (quote HEAD*)
+	   (quote defun)
+	   (quote POST*)
+	   (quote defun)
+	   (quote PATCH*)
+	   (quote defun)
+	   (quote DELETE*)
+	   (quote defun)
+	   (quote OPTIONS*)
+	   (quote defun))
+     (eval put-clojure-indent
+	   (quote context*)
+	   (quote defun))
+     (eval put-clojure-indent
+	   (quote middlewares)
+	   (quote defun))
+     (cider-refresh-after-fn . "user/start")
      (cider-refresh-before-fn . "user/stop")
      (eval progn
 	   (setq cider-refresh-before-fn "user/stop" cider-refresh-after-fn "user/start"))

@@ -10,9 +10,8 @@
     (ido-vertical-mode 1)
     (setq ido-vertical-define-keys 'C-n-C-p-up-and-down)))
 
-(use-package ido-ubiquitous
-  :init   (ido-everywhere 1)
-  :config (ido-ubiquitous-mode 1))
+(use-package ido-everywhere
+  :init   (ido-everywhere 1))
 
 (use-package flx-ido
   :config

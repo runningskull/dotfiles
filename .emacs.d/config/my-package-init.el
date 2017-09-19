@@ -22,7 +22,7 @@
 (put 'use-package 'lisp-indent-function 'defun)
 
 (setq use-package-verbose t)
-(setq use-package-always-ensure t)
+; (setq use-package-always-ensure t)
 
 (require 'use-package)
 

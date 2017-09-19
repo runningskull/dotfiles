@@ -20,15 +20,15 @@ hi Normal               cterm=none ctermbg=none     ctermfg=15      gui=none    
 hi LineNr               cterm=none ctermbg=none     ctermfg=8       gui=none        guibg=#282828   guifg=#8F8F8F
 hi StatusLine           cterm=none ctermbg=8        ctermfg=15      gui=none        guibg=#5D5D5D   guifg=#FBFBFB
 hi StatusLineNC         cterm=none ctermbg=15       ctermfg=8       gui=none        guibg=#5D5D5D   guifg=#FBFBFB
-hi VertSplit            cterm=none ctermbg=0        ctermfg=1       gui=none        guibg=#5D5D5D   guifg=#FBFBFB
+hi VertSplit            cterm=none ctermbg=0        ctermfg=0       gui=none        guibg=#5D5D5D   guifg=#FBFBFB
 hi Search               cterm=none ctermbg=6        ctermfg=15      gui=none        guibg=#2EB5C1   guifg=#F7F7F7
 hi IncSearch            cterm=none ctermbg=3        ctermfg=8       gui=none        guibg=#F6DC69   guifg=#8F8F8F
 hi ColumnMargin         cterm=none ctermbg=0                        gui=none        guibg=#000000
 hi Error                cterm=none ctermbg=1        ctermfg=15      gui=none                        guifg=#F7F7F7
 hi ErrorMsg             cterm=none ctermbg=1        ctermfg=15      gui=none                        guifg=#F7F7F7
-hi Folded               cterm=none ctermbg=235      ctermfg=243     gui=none        guibg=#3B3B3B   guifg=#90AB41
+hi Folded               cterm=none ctermbg=235      ctermfg=239     gui=none        guibg=#3B3B3B   guifg=#90AB41
 hi FoldColumn           cterm=none ctermbg=none     ctermfg=238     gui=none        guibg=#3B3B3B   guifg=#90AB41
-hi NonText              cterm=bold ctermbg=none     ctermfg=8       gui=bold                        guifg=#8F8F8F
+hi NonText              cterm=bold ctermbg=none     ctermfg=238     gui=bold                        guifg=#8F8F8F
 hi ModeMsg              cterm=bold ctermbg=none     ctermfg=10      gui=none
 hi Pmenu                cterm=none ctermbg=8        ctermfg=15      gui=none        guibg=#8F8F8F   guifg=#F7F7F7
 hi PmenuSel             cterm=none ctermbg=15       ctermfg=8       gui=none        guibg=#F7F7F7   guifg=#8F8F8F
@@ -37,7 +37,7 @@ hi SpellBad             cterm=none ctermbg=1        ctermfg=15      gui=none    
 hi SpellCap             cterm=none ctermbg=4        ctermfg=15      gui=none                        guifg=#F7F7F7
 hi SpellRare            cterm=none ctermbg=4        ctermfg=15      gui=none                        guifg=#F7F7F7
 hi SpellLocal           cterm=none ctermbg=4        ctermfg=15      gui=none                        guifg=#F7F7F7
-hi Visual               cterm=none ctermbg=15       ctermfg=8       gui=none        guibg=#F7F7F7   guifg=#8F8F8F
+hi Visual               cterm=none ctermbg=237      ctermfg=none    gui=none        guibg=#F7F7F7   guifg=#8F8F8F
 hi Directory            cterm=none ctermbg=none     ctermfg=4       gui=none        guibg=#242424   guifg=#88CCE7
 hi SpecialKey           cterm=none ctermbg=none     ctermfg=8       gui=none                        guifg=#8F8F8F
 hi DiffAdd              cterm=bold ctermbg=2        ctermfg=15
@@ -48,6 +48,7 @@ hi MatchParen           cterm=none ctermbg=6        ctermfg=15      gui=none    
 hi CursorLine           cterm=none ctermbg=238      ctermfg=none    gui=none        guibg=#424242
 hi CursorColumn         cterm=none ctermbg=238      ctermfg=none    gui=none        guibg=#424242
 hi Title                cterm=none ctermbg=none     ctermfg=4       gui=none                        guifg=#88CCE7
+hi SignColumn           cterm=none ctermbg=235      ctermfg=none    gui=none        guibg=#3B3B3B   guifg=#90AB41
 
 " ----------------------------------------------------------------------------
 " Syntax Highlighting

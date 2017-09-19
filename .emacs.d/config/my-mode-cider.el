@@ -105,7 +105,9 @@ Info contains project name and host:port endpoint."
          (",cee" . cider-eval-defun-at-point)
 
          (",ctt" . cider-test-run-test)
-         (",ct," . cider-test-run-tests)
+	 (",ctn" . cider-test-run-ns-tests)
+	 (",ctl" . cider-test-run-loaded-tests)
+	 (",ctp" . cider-test-run-project-tests)
 
          (",ch" . cider-doc)
 
@@ -124,8 +126,8 @@ Info contains project name and host:port endpoint."
   :config
   (progn
     (setq cider-repl-display-help-banner nil)
-    (setq cider-repl-pop-to-buffer-on-connect nil)
-    (setq cider-repl-display-in-current-window t)
+    (setq cider-repl-pop-to-buffer-on-connect 'display-only)
+    (setq cider-repl-display-in-current-window nil)
     (setq cider-repl-shortcut-dispatch-char ?\\)
     (setq cider-mode-line '(:eval (format " $%s" (my--cider--modeline-info))))
     (setq cider-repl-prompt-function 'my-cider-repl-prompt)))

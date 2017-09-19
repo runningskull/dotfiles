@@ -120,6 +120,7 @@
 
     ;; Elisp eval
     (define-key evil-normal-state-map ",ee" 'eval-last-sexp)
+    (define-key evil-visual-state-map ",ee" 'eval-region)
     (define-key evil-normal-state-map ",e," 'eval-defun)
 
     ;; Help
@@ -195,7 +196,17 @@
       ;; quick window split
       (define-key evil-normal-state-map (kbd "C-_") 'evil-window-vsplit)
       ;; Bar/block cursors in terminal
-      (my-evil-terminal-cursor-change))))
+      (my-evil-terminal-cursor-change)
+
+      ;; iterm mappings
+      (define-key evil-normal-state-map ",,x" 'smex) ; for the terminal
+      (define-key evil-visual-state-map ",,x" 'smex) ; for the terminal
+      (define-key evil-normal-state-map ",,j" 'avy-goto-line)
+      (define-key evil-normal-state-map ",,k" 'avy-goto-line)
+      (define-key evil-visual-state-map ",,j" 'avy-goto-line)
+      (define-key evil-visual-state-map ",,k" 'avy-goto-line)
+      
+      )))
 
 
 (-whichkey-section- "Folding" ",f")

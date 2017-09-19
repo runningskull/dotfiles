@@ -25,12 +25,13 @@
 
 ;; -- Third-party Packages -- ;;
 
-;; Bwahahahaha
-(require 'my-mode-evil)
-
 ;; If package requires any additional config,
 ;; move into its own my-mode-*.el file
 (use-package smex :defer t)
+(use-package expand-region :defer t)
+
+;; Bwahahahaha
+(require 'my-mode-evil)
 
 
 

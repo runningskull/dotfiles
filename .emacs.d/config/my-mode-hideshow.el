@@ -5,8 +5,10 @@
 
 (use-package hideshow
   :defer t
+  :init (setq hs-hide-comments-when-hiding-all nil)
   :bind (:map evil-normal-state-map
-	 ("zm" . enable-and-fold))
+	      ("zm" . enable-and-fold)
+	      ("zl" . hs-hide-level))
   :diminish hideshow-mode)
 
 (use-package hideshowvis

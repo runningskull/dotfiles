@@ -19,7 +19,6 @@ filetype plugin on
   Plug 'rking/ag.vim'
   Plug 'tpope/vim-obsession'
   Plug 'bling/vim-airline'
-  " Plug 'tpope/vim-dispatch'
   Plug 'rhysd/conflict-marker.vim'
   Plug 'ciaranm/detectindent'
 
@@ -27,13 +26,9 @@ filetype plugin on
   Plug 'reedes/vim-colors-pencil'
 
   " Test-driving
-  Plug 'davidhalter/jedi-vim'
   Plug 'jtratner/vim-flavored-markdown'
   Plug 'csscomb/vim-csscomb'
-  " Plug 'wesQ3/vim-windowswap'
-  Plug 'benekastah/neomake'
-  " Plug 'junegunn/vim-easy-align'
-  " Plug 'metakirby5/codi.vim'
+  " Plug 'benekastah/neomake'
   " Plug 'jiangmiao/auto-pairs'
 
   " Colors
@@ -58,10 +53,14 @@ filetype plugin on
   Plug 'hail2u/vim-css3-syntax'
   Plug 'keith/swift.vim'
   Plug 'vim-perl/vim-perl'
+  Plug 'chr4/nginx.vim'
 
-  Plug 'ternjs/tern_for_vim'
+  " Plug 'ternjs/tern_for_vim'
   Plug 'pangloss/vim-javascript'
-  Plug 'nicklasos/vim-jsx-riot'
+  Plug 'neoclide/vim-jsx-improve'
+  Plug 'flowtype/vim-flow'
+  Plug 'w0rp/ale'
+  Plug 'SirVer/ultisnips'
 
   call plug#end()
   
@@ -112,6 +111,9 @@ filetype plugin on
   " CSS uses hyphens & stuff
   autocmd FileType css,scss set iskeyword=@,48-57,_,-,?,!,192-255
 
+  " Turn on Swift Autocomplete
+  autocmd BufNewFile,BufRead *.swift set filetype=swift
+
   " custom file extensions
   autocmd BufNewFile,BufRead *.cfg set filetype=yaml
   autocmd BufNewFile,BufRead *.hhtml set filetype=html.handlebars
@@ -123,6 +125,17 @@ filetype plugin on
   " EasyAlign
   xmap ga <Plug>(EasyAlign)
   nmap ga <Plug>(EasyAlign)
+
+  iabbr eldl // eslint-disable-line
+  map <tab> mx=a{'x
+
+  nmap <silent> ,ln <Plug>(ale_next_wrap)
+  nmap <silent> ,lp <Plug>(ale_previous_wrap)
+
+  let g:UltiSnipsJumpForwardTrigger="<c-j>"
+  let g:UltiSnipsJumpBackwardTrigger="<c-k>"
+
+
 
 
 

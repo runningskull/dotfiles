@@ -86,10 +86,6 @@
 
   ;; since cmd doesn't work in terminal, we have these.
   ;; got iTerm shortcuts mapped to input that text using non-terminal shortcuts 
-  ; (define-key evil-normal-state-map ",,x" 'smex) ; for the terminal
-  ; (define-key evil-visual-state-map ",,x" 'smex) ; for the terminal
-  ; (define-key evil-normal-state-map ",,j" 'avy-goto-line)
-  ; (define-key evil-normal-state-map ",,k" 'avy-goto-line)
   )
 
 

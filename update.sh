@@ -1,6 +1,6 @@
 # zsh
 cp ~/.zshrc .
-cp ~/.zgen/zgen.zsh .zgen
+rm -rf .zgen; git clone https://github.com/tarjoilija/zgen.git .zgen; rm -rf .zgen.git
 
 # vim
 cp ~/.vimrc .

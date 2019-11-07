@@ -194,16 +194,16 @@ filetype plugin on
 "``````````````````````````````````````````````````````````````````````````````
 " In-buffer Editing
 
-  " quick hop up and down
-  map <c-k> 8k
-  map <c-j> 8j
+  " quick hop up and down (visual and normal)
+  noremap <c-k> 8k
+  noremap <c-j> 8j
 
-  " quick comment
+  " quick comment (can't be noremap's)
   nmap <leader>; gcl
   vmap <leader>; gc
 
   " quick save
-  map <leader>s :w<cr>
+  noremap <leader>s :w<cr>
 
   " more ergonomic marks
   noremap ' `
@@ -241,8 +241,8 @@ filetype plugin on
 "``````````````````````````````````````````````````````````````````````````````
 " Folding
 
-  " quick recursive fold/unfold
-  noremap <leader><space> zA
+  " quick fold/unfold
+  nnoremap <expr> <leader><space> 'z' . (foldclosed('.') > -1 ? 'A' : 'a')
 
   " open folds by default
   set foldlevel=99
@@ -254,14 +254,14 @@ filetype plugin on
   set foldnestmax=12
 
   " fold/unfold one level
-  noremap <leader>f<leader> za
+  nnoremap <leader>. za
 
   " set foldlevel to a particular level
-  noremap <leader>fs :setl foldlevel=
+  nnoremap <leader>fs :setl foldlevel=
 
   " jump to the next/previous fold and toggle it
-  noremap <leader>fj zjza
-  noremap <leader>fk zkza
+  nnoremap <leader>fj zjzA
+  nnoremap <leader>fk zkzA
 
   " no fillchars
   set fillchars=fold:\ 
@@ -272,7 +272,7 @@ filetype plugin on
       normal za
     endif
   endfunction
-  nmap <LeftRelease> :call OpenClickedFold()<cr>
+  " nnoremap <silent> <LeftRelease> :call OpenClickedFold()<cr>
 
   " nicer foldtext function
   set foldtext=MyFoldText()
@@ -326,22 +326,22 @@ filetype plugin on
   noremap <leader>k <c-w>k
 
   " quick switch between 2 buffers
-  noremap <leader>z :b#<cr>
+  nnoremap <leader>z :b#<cr>
 
   " quick quit window
-  noremap <leader>q :q<cr>
+  nnoremap <leader>q :q<cr>
 
   " quick browse files
   nnoremap - :Dirvish %<cr>
 
   " quick project-level search
-  noremap <leader>/ :Ag!<space>
+  nnoremap <leader>/ :Ag!<space>
 
   " quick suspend
   nnoremap Z <c-z>
 
   " open a scratch buffer
-  map <leader>ee :e /tmp/scratch-<c-r>=strftime("%Y%m%d%H%M")<cr><cr>i
+  nnoremap <leader>ee :e /tmp/scratch-<c-r>=strftime("%Y%m%d%H%M")<cr><cr>i
 
   " ctrl-p is all that and a bag of chips
   nnoremap \ :CtrlP<cr>
@@ -366,8 +366,8 @@ filetype plugin on
   set wildignore+=*/build/*
 
   " window commands w/o chording
-  map <leader>w <c-w>
-  map <leader>w\ :vsp<cr>
+  nnoremap <leader>w <c-w>
+  nnoremap <leader>w\ :vsp<cr>
 
   " navigate quickfix (error) list
   noremap <leader>co :Copen<cr>
@@ -435,7 +435,7 @@ filetype plugin on
 
   command! Files call Filebar_Open()
   command! Nofiles call Filebar_Close()
-  noremap <leader><tab> :call Filebar_JumpIn()<cr>
+  nnoremap <leader><tab> :call Filebar_JumpIn()<cr>
   let g:netrw_liststyle=3
 
 
@@ -478,9 +478,9 @@ filetype plugin on
   command! SoftWrap set wrap|set formatoptions=l|set lbr|map j gj|map k gk
 
   " barebones snippets
-  inoremap <c-l> <esc>/___<cr>cw
+  inoremap <c-;> <esc>/___<cr>cw
   inoremap <c-u> <esc>?___<cr>cw
-  inoremap ;<tab> <esc>:set paste<cr>my"ycaw<c-r>=trim(join(readfile(expand('~/.vim/snips/<c-r>y'),'b'), "\n"))<cr><esc>:set nopaste<cr>'yi<c-l>
+  inoremap ;<tab> <esc>:set paste<cr>my"ycaw<c-r>=trim(join(readfile(expand('~/.vim/snips/<c-r>y'),'b'), "\n"))<cr><esc>:set nopaste<cr>'y/___<cr>cw
   command! -nargs=1 Snip split $HOME/.vim/snips/<args>
 
   " run things as vim commands
@@ -583,7 +583,7 @@ filetype plugin on
       for ext in a:000
         let fname = expand("%<") . "." . ext
         if filereadable(fname)
-          edit fname
+          exe 'edit ' . fname
           return
         endif
       endfor

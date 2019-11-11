@@ -1,0 +1,7 @@
+class ___ : public QWidget
+{ Q_OBJECT
+
+	public:
+		___
+
+};

@@ -1,4 +1,4 @@
-" vim: set foldmethod=indent sw=2 et :
+" vim: set fdm=indent sw=2 et :
 
 set nocompatible
 let mapleader = "," 
@@ -154,7 +154,8 @@ filetype plugin on
   function! Colors_Light()
     set bg=light
     " colo mnml-light
-    colo one
+    " colo one
+    colo monoid
   endfunction
 
   function! Colors_Dark()
@@ -344,14 +345,15 @@ filetype plugin on
   nnoremap <leader>ee :e /tmp/scratch-<c-r>=strftime("%Y%m%d%H%M")<cr><cr>i
 
   " ctrl-p is all that and a bag of chips
-  nnoremap \ :CtrlP<cr>
-  noremap <tab> :CtrlPMRU<cr>
+  nnoremap \ :CtrlPMRU<cr>
+  noremap <c-\> :CtrlP<cr>
   let g:ctrlp_by_filename = 0
   let g:ctrlp_custom_ignore = {'dir':  'build$\|dist$\|tmp$\|node_modules$'}
   let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
+  let g:ctrlp_prompt_mappings = {'PrtClearCache()': ['<c-r>']}
 
   " jump to specific buffer (obsoleted by ctrlp plugin)
-  noremap <c-\> :ls<cr>:b<space>
+  " noremap <c-\> :ls<cr>:b<space>
 
   " sane command-mode autocomplete
   set wildmode=list:longest
@@ -378,6 +380,107 @@ filetype plugin on
 
   " close buffer w/o closing window
   noremap <leader>bd :b#\|bd \#<cr>
+
+
+
+
+"```````````````````````````````````````````````````````````````````````````````
+" Misc Utils
+
+  function! CursorSyntax()
+    return join(map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")'))
+  endfunction
+
+  function! CurChar(...)
+    let l:offset = 1 - (a:0 > 0 ? a:1 : 0)
+    return strcharpart(strpart(getline('.'), col('.') - l:offset), 0, 1) 
+  endfunction
+
+  " easy/powerful autocomplete from all buffers
+  function! SmartTab_Complete()
+    if (pumvisible()) | return "\<C-N>" | endif
+    return ((col('.') > 1) && (CurChar(-1) =~ '\w')) ? "\<C-N>" : "\<tab>"
+  endfunction
+  inoremap <tab> <c-r>=SmartTab_Complete()<CR>
+  set completeopt=menuone
+
+  " show syntax stack of character under cursor
+  function! SynStack()
+    let stack  = 'hi<' . synIDattr(synID(line("."),col("."),1),"name") . '> '
+    let stack .= 'trans<' . synIDattr(synID(line("."),col("."),0),"name") . '> '
+    let stack .= 'lo<' . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . '>'
+    return stack
+  endfunction
+  map <leader>hc :echo SynStack()<CR>
+
+  " sessions
+  nnoremap <leader>os :Obsession ~/.vim/sessions/
+  nnoremap <leader>oo :source ~/.vim/sessions/
+
+  " soft wrap is useful for for editing prose
+  command! SoftWrap set wrap|set formatoptions=l|set lbr|map j gj|map k gk
+
+  " run things as vim commands
+  vnoremap <leader>vx "yy:@y<cr>
+  nmap <leader>vx my_v$h,vx'y
+
+  " reload things
+  noremap <leader>rr :syntax sync fromstart<cr> 
+  noremap <leader>rv :so ~/.vimrc<cr>:echo "reloaded"<cr>
+  noremap <leader>rg :call GitVimrc_Load()<cr>
+  noremap <leader>rf :so %<cr>
+  noremap <leader>rc :call Colors_MatchTerminal()<cr>
+  noremap <leader>rl kw<cr>:!osascript ~/bin/reload_chcan<cr><cr>
+
+  " help me find/remember mappings
+  nnoremap <silent> <leader> :WhichKey ','<CR>
+
+  " align code
+  command! -nargs=1 -range Align <line1>,<line2>!sed "s/<args>/•&•/" | column -t -s "•"
+
+
+
+
+"```````````````````````````````````````````````````````````````````````````````
+" Project-Local Vim Config
+
+  function! GitVimrc_Path()
+    let l:current = trim(system('echo ' . expand('%:p:h')))
+    let l:gitroot = trim(system('git -C ' . current . ' rev-parse --show-toplevel'))
+    return v:shell_error == 0 ? l:gitroot : ''
+  endfunction
+
+  function! GitVimrc_Load()
+    if !(len(&filetype) && &modifiable) | return | endif
+    if (expand('%:p:h') == expand('~')) | return | endif
+    if (expand('%:t') == '.vimrc') | return | endif
+
+    let l:gitroot = GitVimrc_Path()
+    let l:filename = l:gitroot . '/.vimrc'
+    if len(l:gitroot) && filereadable(l:filename)
+      exec printf('source %s', l:filename)
+    endif
+  endfunction
+
+  function! GitVimrc_Edit()
+    let l:gitroot = GitVimrc_Path()
+    if len(l:gitroot)
+      edit gitroot . '/.vimrc'
+    endif
+  endfunction
+
+  autocmd BufWinEnter * call GitVimrc_Load()
+
+
+
+
+"```````````````````````````````````````````````````````````````````````````````
+" Snippets
+
+  inoremap <c-;> <esc>/___<cr>cw
+  inoremap <c-u> <esc>?___<cr>cw
+  inoremap ;<tab> <esc>:set paste<cr>my"ycaw<c-r>=trim(join(readfile(expand('~/.vim/snips/<c-r>y'),'b'), "\n"))<cr><esc>:set nopaste<cr>'y/___<cr>cw
+  command! -nargs=1 Snip split $HOME/.vim/snips/<args>
 
 
 
@@ -441,104 +544,13 @@ filetype plugin on
 
 
 
-"```````````````````````````````````````````````````````````````````````````````
-" Misc Utils
-
-  function! CursorSyntax()
-    return join(map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")'))
-  endfunction
-
-  function! CurChar(...)
-    let l:offset = 1 - (a:0 > 0 ? a:1 : 0)
-    return strcharpart(strpart(getline('.'), col('.') - l:offset), 0, 1) 
-  endfunction
-
-  " easy/powerful autocomplete from all buffers
-  function! SmartTab_Complete()
-    if (pumvisible()) | return "\<C-N>" | endif
-    return ((col('.') > 1) && (CurChar(-1) =~ '\w')) ? "\<C-N>" : "\<tab>"
-  endfunction
-  inoremap <tab> <c-r>=SmartTab_Complete()<CR>
-  set completeopt=menuone
-
-  " show syntax stack of character under cursor
-  function! SynStack()
-    let stack  = 'hi<' . synIDattr(synID(line("."),col("."),1),"name") . '> '
-    let stack .= 'trans<' . synIDattr(synID(line("."),col("."),0),"name") . '> '
-    let stack .= 'lo<' . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . '>'
-    return stack
-  endfunction
-  map <leader>hc :echo SynStack()<CR>
-
-  " sessions
-  nnoremap <leader>os :Obsession ~/.vim/sessions/
-  nnoremap <leader>oo :source ~/.vim/sessions/
-
-  " soft wrap is useful for for editing prose
-  command! SoftWrap set wrap|set formatoptions=l|set lbr|map j gj|map k gk
-
-  " barebones snippets
-  inoremap <c-;> <esc>/___<cr>cw
-  inoremap <c-u> <esc>?___<cr>cw
-  inoremap ;<tab> <esc>:set paste<cr>my"ycaw<c-r>=trim(join(readfile(expand('~/.vim/snips/<c-r>y'),'b'), "\n"))<cr><esc>:set nopaste<cr>'y/___<cr>cw
-  command! -nargs=1 Snip split $HOME/.vim/snips/<args>
-
-  " run things as vim commands
-  noremap <leader>vx my_v$hy:<c-r>"<cr>'y
-  vnoremap <leader>vx "yy:@y<cr>
-
-  " reload things
-  noremap <leader>rr :syntax sync fromstart<cr> 
-  noremap <leader>rv :so ~/.vimrc<cr>:echo "reloaded"<cr>
-  noremap <leader>rg :call GitVimrc_Load()<cr>
-  noremap <leader>rf :so %<cr>
-  noremap <leader>rc :call Colors_MatchTerminal()<cr>
-  noremap <leader>rl kw<cr>:!osascript ~/bin/reload_chcan<cr><cr>
-
-  " help me find/remember mappings
-  nnoremap <silent> <leader> :WhichKey ','<CR>
-
-
-
-
-"```````````````````````````````````````````````````````````````````````````````
-" Project-Local Vim Config
-
-  function! GitVimrc_Path()
-    let l:current = trim(system('echo ' . expand('%:p:h')))
-    let l:gitroot = trim(system('git -C ' . current . ' rev-parse --show-toplevel'))
-    return v:shell_error == 0 ? l:gitroot : ''
-  endfunction
-
-  function! GitVimrc_Load()
-    if !(len(&filetype) && &modifiable) | return | endif
-    if (expand('%:p:h') == expand('~')) | return | endif
-    if (expand('%:t') == '.vimrc') | return | endif
-
-    let l:gitroot = GitVimrc_Path()
-    let l:filename = l:gitroot . '/.vimrc'
-    if len(l:gitroot) && filereadable(l:filename)
-      exec printf('source %s', l:filename)
-    endif
-  endfunction
-
-  function! GitVimrc_Edit()
-    let l:gitroot = GitVimrc_Path()
-    if len(l:gitroot)
-      edit gitroot . '/.vimrc'
-    endif
-  endfunction
-
-  autocmd BufWinEnter * call GitVimrc_Load()
-
-
-
 
 "```````````````````````````````````````````````````````````````````````````````
 " Specific Languages/Filetypes
 
+
   "````````````````````````````````````````
-  " HTML/JS/CSS
+  " html/js/css
 
     " js/cs 'norm' is 2-space indents
     au FileType js,coffee,jade setl shiftwidth=2
@@ -594,6 +606,8 @@ filetype plugin on
       iabbr <buffer> inc< #include ><left>
       iabbr <buffer> inc" #include "<left>
 
+      iabbr <buffer> cosnt const
+
       inoremap <buffer> - <c-r>=IfInWord("_", "-")<CR>
       inoremap <buffer> _ <c-r>=IfInWord(IfAfterUnderscore("_", "-"), "_")<CR>
 
@@ -612,34 +626,38 @@ filetype plugin on
   "````````````````````````````````````````
   " lua
 
-  function! InLuaString()
-    let syn = CursorSyntax()
-    return syn =~? 'luaString' ? 1 : 0
-  endfunction
+    function! InLuaString()
+      let syn = CursorSyntax()
+      return syn =~? 'luaString' ? 1 : 0
+    endfunction
 
-  function! InLuaComment()
-    let syn = CursorSyntax()
-    return syn =~? 'luaComment' ? 1 : 0
-  endfunction
+    function! InLuaComment()
+      let syn = CursorSyntax()
+      return syn =~? 'luaComment' ? 1 : 0
+    endfunction
 
-  function! Smart_Underscore()
-    let line = getline('.')
-    let substr = strpart(line, -1, col('.'))
-    let force_hyphen = InLuaString() || InLuaComment()
-    let is_word = match(substr, '\w$') > -1
-    if (force_hyphen || !is_word)
-      return "-"
-    else
-      return "_"
-    end
-  endfunction
+    function! Smart_Underscore()
+      let line = getline('.')
+      let substr = strpart(line, -1, col('.'))
+      let force_hyphen = InLuaString() || InLuaComment()
+      let is_word = match(substr, '\w$') > -1
+      if (force_hyphen || !is_word)
+        return "-"
+      else
+        return "_"
+      end
+    endfunction
 
-  au FileType lua inoremap <buffer> - <c-r>=Smart_Underscore()<CR>
-
-
+    au FileType lua inoremap <buffer> - <c-r>=Smart_Underscore()<CR>
 
 
-"``````````````````````````````````````````````````````````````````````````````
+
+
+"______________________________________________________________________________
+
+
+
+
 "``````````````````````````````````````````````````````````````````````````````
 " Experiments 
 

@@ -1,17 +1,10 @@
-let g:manual_color=1
+" vim: set fdm=indent sw=2 et :
+
 set termguicolors
+set runtimepath^=~/.vim runtimepath+=~/.vim/after
+let &packpath = &runtimepath
 
-if has("nvim")
-  set runtimepath^=~/.vim runtimepath+=~/.vim/after
-  let &packpath = &runtimepath
-  source ~/.vimrc
 
-  if !has("gui_vimr")
-    call Colors_Dark()
-  endif
-endif
+source ~/.vimrc
 
-if has("gui_vimr")
-  call Colors_Light()
-endif
 

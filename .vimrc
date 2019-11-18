@@ -5,8 +5,8 @@ let mapleader = ","
 filetype plugin on
 
 
-"``````````````````````````````````````````````````````````````````````````````
-" vim-plug 
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+" Plugins
 
   call plug#begin('~/.vim/plugged')
 
@@ -40,19 +40,23 @@ filetype plugin on
     " Plug 'tbastos/vim-lua'
     Plug 'artoj/qmake-syntax-vim'
 
+  " colors
+    Plug 'runningskull/monoid.vim'
+
   " test-driving
     Plug 'junegunn/vim-peekaboo'
     Plug 'tpope/vim-eunuch'
     " Plug 'Valloric/YouCompleteMe'
     " Plug 'neoclide/coc.nvim', {'branch': 'release'}
     " Plug 'kassio/neoterm'
+    " Plug 'kergoth/vim-hilinks'
 
   call plug#end()
 
 
 
 
-"``````````````````````````````````````````````````````````````````````````````
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Vim Core
 
   " fix for delay exiting insert mode in terminal
@@ -85,7 +89,7 @@ filetype plugin on
 
 
 
-"``````````````````````````````````````````````````````````````````````````````
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " UI Options
 
   set nu
@@ -144,7 +148,67 @@ filetype plugin on
 
 
 
-"```````````````````````````````````````````````````````````````````````````````
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+" Util Functions
+
+  function! OrStr(a, b)
+    return len(a:a) ? a:a : a:b
+  endfunction
+
+  function! CurChar(...)
+    let offset = 1 - (a:0 > 0 ? a:1 : 0)
+    return strcharpart(strpart(getline('.'), col('.') - offset), 0, 1) 
+  endfunction
+
+  function! CurSyntax(...)
+    let id = synID(line('.'), col('.'), 1)
+    let id = a:0 ? id : synIDtrans(id)
+    return synIDattr(id, 'name')
+  endfunction
+
+  function! CurInWord()
+    return (CurChar(-1) =~ '\w')
+  endfunction
+
+  function! CurAfterUnderscore()
+    return (CurChar(-1) == '_')
+  endfunction
+
+  function! CurInComment()
+    return CurSyntax() =~ 'Comment'
+  endfunction
+
+  function! SetKey(dict, path, val)
+    let keys = split(a:path, '\.')
+    let final_key = keys[-1]
+    let level = a:dict
+    if len(keys) > 1
+      let keys = keys[:-2]
+      for k in keys
+        if !has_key(level, k) | let level[k] = {} | endif
+        if type(level[k]) == v:t_dict
+          let level = level[k]
+        else
+          echoe "Could not set path ".a:path." : Key '".k."' is not a dictionary"
+          return
+        endif
+      endfor
+    endif
+    let level[final_key] = a:val
+  endfunction
+
+  function! GUI()
+    return ( has('gui_vimr') || has('gui_running') )
+  endfunction
+
+  function! TitleCase(s)
+    return substitute(a:s, '\<\w', '\U\0', 'g')
+  endfunction
+
+
+
+
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Colors
 
   syn on
@@ -166,33 +230,44 @@ filetype plugin on
   command! Dark call Colors_Dark() | let g:manual_color=1
   command! Light call Colors_Light() | let g:manual_color=1
 
+  if !exists('*Colors_Default')
+    function! Colors_Default()
+      call call('Colors_' . (GUI() ? 'Light' : 'Dark'), [])
+    endfunction
+  endif
+
   " startup color theme
-  function! Colors_MatchTerminal()
-    if (!exists('g:manual_color'))
-      let l:termcolor = readfile(expand('~/.config/termcolor'))
-      if (len(l:termcolor))
-        if (l:termcolor[0] == 'light')
-          call Colors_Light()
-        else
-          call Colors_Dark()
-        endif
-      else
-        " default
-        call Colors_Dark()
-      endif
-    endif
+  function! Colors_Init()
+    if exists('g:manual_color') | return | endif
+    if GUI() | return Colors_Default() | endif
+
+    let term = readfile(expand('~/.config/termcolor'))
+    call call('Colors_' . (len(term) ? TitleCase(term[0]) : 'Defaults'), [])
   endfunction
   
-  call Colors_MatchTerminal()
+  call Colors_Init()
 
   if has('nvim')
-    au VimResume * call Colors_MatchTerminal()
+    au VimResume * call Colors_Init()
   endif
 
 
 
 
-"``````````````````````````````````````````````````````````````````````````````
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+" Which-Key
+
+  let g:which_key_map = {}
+  call which_key#register(',', 'g:which_key_map')
+  command! -nargs=+ WK call SetKey(g:which_key_map, <f-args>)
+  nnoremap <silent> <leader> :WhichKey ','<CR>
+  hi link WhichKeyDesc Identifier
+  hi link WhichKeyGroup Label
+
+
+
+
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " In-buffer Editing
 
   " quick hop up and down (visual and normal)
@@ -202,13 +277,25 @@ filetype plugin on
   " quick comment (can't be noremap's)
   nmap <leader>; gcl
   vmap <leader>; gc
+  WK ; comment
 
   " quick save
-  noremap <leader>s :w<cr>
+  noremap <silent> <leader>s :update<cr>
+  WK s save
+
+  " quick function body
+  inoremap {<cr> {}<left><cr><esc>O
 
   " more ergonomic marks
   noremap ' `
   noremap ` '
+
+  " paste without yanking
+  vnoremap p "_dP
+
+  " keep selection when indenting
+  vnoremap < <gv
+  vnoremap > >gv
 
   " default indenting
   set autoindent
@@ -226,8 +313,17 @@ filetype plugin on
   " usually I don't actually want the window center
   noremap zz zz10<c-e>
 
+  " highlight matching angle brackets
+  set matchpairs+=<:>
+
   " detect tabs or spaces
   set smarttab
+
+  " operate on the current line
+  xnoremap il g_o_o
+  xnoremap al $o_o
+  onoremap il :normal vil<CR>
+  onoremap al :normal val<CR>
 
   " force tabs instead of spaces
   command! TABS set noexpandtab|set sts=0|set ts=4|set sw=0
@@ -235,15 +331,24 @@ filetype plugin on
   " force tab size
   noremap <leader>2 :set shiftwidth=2<cr>
   noremap <leader>4 :set shiftwidth=4<cr>
+  WK 2 which_key_ignore
+  WK 4 which_key_ignore
+
+  " less chording for snake_case
+  function! SwapDashUnderscore()
+    inoremap <buffer> <expr> - (!CurInWord() ? '-' : (CurInComment() ? '-' : '_'))
+    inoremap <buffer> <expr> _ (!CurInWord() ? '_' : (CurAfterUnderscore() ? '_' : '-'))
+  endfunction
 
 
 
 
-"``````````````````````````````````````````````````````````````````````````````
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Folding
 
   " quick fold/unfold
   nnoremap <expr> <leader><space> 'z' . (foldclosed('.') > -1 ? 'A' : 'a')
+  WK SPC un/fold
 
   " open folds by default
   set foldlevel=99
@@ -254,15 +359,21 @@ filetype plugin on
   " whatever
   set foldnestmax=12
 
+  WK f.name +fold
+
   " fold/unfold one level
-  nnoremap <leader>. za
+  nnoremap <leader>ff za
+  WK f.f toggle-one-level
 
   " set foldlevel to a particular level
   nnoremap <leader>fs :setl foldlevel=
+  WK f.s set-foldlevel
 
   " jump to the next/previous fold and toggle it
   nnoremap <leader>fj zjzA
   nnoremap <leader>fk zkzA
+  WK f.j toggle-next
+  WK f.k toggle-prev
 
   " no fillchars
   set fillchars=fold:\ 
@@ -274,6 +385,7 @@ filetype plugin on
     endif
   endfunction
   " nnoremap <silent> <LeftRelease> :call OpenClickedFold()<cr>
+  nnoremap <silent> <2-LeftMouse> :call OpenClickedFold()<CR>
 
   " nicer foldtext function
   set foldtext=MyFoldText()
@@ -317,7 +429,7 @@ filetype plugin on
 
 
 
-"``````````````````````````````````````````````````````````````````````````````
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " File/Buffer/Window Navigation
 
   " quick jump windows
@@ -325,24 +437,31 @@ filetype plugin on
   noremap <c-l> <c-w>l
   noremap <leader>j <c-w>j
   noremap <leader>k <c-w>k
+  WK j which_key_ignore
+  WK k which_key_ignore
 
   " quick switch between 2 buffers
-  nnoremap <leader>z :b#<cr>
+  nnoremap <silent> <leader>z :b#<cr>
+  WK z mru-buffer
 
   " quick quit window
-  nnoremap <leader>q :q<cr>
+  nnoremap <silent> <leader>q :q<cr>
+  WK q kill-window
 
   " quick browse files
   nnoremap - :Dirvish %<cr>
 
   " quick project-level search
   nnoremap <leader>/ :Ag!<space>
+  WK / search-project
 
   " quick suspend
   nnoremap Z <c-z>
 
   " open a scratch buffer
   nnoremap <leader>ee :e /tmp/scratch-<c-r>=strftime("%Y%m%d%H%M")<cr><cr>i
+  WK e.name +edit
+  WK e.e scratch-buffer
 
   " ctrl-p is all that and a bag of chips
   nnoremap \ :CtrlPMRU<cr>
@@ -369,7 +488,7 @@ filetype plugin on
 
   " window commands w/o chording
   nnoremap <leader>w <c-w>
-  nnoremap <leader>w\ :vsp<cr>
+  WK w which_key_ignore
 
   " navigate quickfix (error) list
   noremap <leader>co :Copen<cr>
@@ -377,52 +496,75 @@ filetype plugin on
   noremap <leader>cn :cn<cr>
   noremap <leader>cp :cp<cr>
   noremap <leader>cc :cc
+  WK c.name +quickfix
+  WK c.o open
+  WK c.O open-latest
+  WK c.n next
+  WK c.p prev
+  WK c.c goto
 
   " close buffer w/o closing window
   noremap <leader>bd :b#\|bd \#<cr>
+  noremap <leader>bz :tabe %<cr>
+  WK b.name +buffer
+  WK b.d kill
+  WK b.z zoom
 
 
 
 
-"```````````````````````````````````````````````````````````````````````````````
-" Misc Utils
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+" Misc Helpers
 
-  function! CursorSyntax()
-    return join(map(synstack(line('.'), col('.')), 'synIDattr(v:val, "name")'))
-  endfunction
+  WK h.name +help
+  nnoremap <leader>hw :h <c-r><c-w><CR>
+  WK h.w help-word
 
-  function! CurChar(...)
-    let l:offset = 1 - (a:0 > 0 ? a:1 : 0)
-    return strcharpart(strpart(getline('.'), col('.') - l:offset), 0, 1) 
-  endfunction
 
   " easy/powerful autocomplete from all buffers
-  function! SmartTab_Complete()
-    if (pumvisible()) | return "\<C-N>" | endif
-    return ((col('.') > 1) && (CurChar(-1) =~ '\w')) ? "\<C-N>" : "\<tab>"
+  function! TabComplete(key)
+    if (pumvisible()) | return a:key | endif
+    return ((col('.') > 1) && (CurInWord())) ? a:key : "\<tab>"
   endfunction
-  inoremap <tab> <c-r>=SmartTab_Complete()<CR>
+  inoremap <expr>   <tab> TabComplete("\<c-n>")
+  inoremap <expr> <s-tab> TabComplete("\<c-p>")
   set completeopt=menuone
-
+  
   " show syntax stack of character under cursor
-  function! SynStack()
-    let stack  = 'hi<' . synIDattr(synID(line("."),col("."),1),"name") . '> '
-    let stack .= 'trans<' . synIDattr(synID(line("."),col("."),0),"name") . '> '
-    let stack .= 'lo<' . synIDattr(synIDtrans(synID(line("."),col("."),1)),"name") . '>'
-    return stack
+  function! HiTrace()
+    let rootID = synIDtrans(synID(line('.'),col('.'), 1))
+    let out  =   ' '  . synIDattr(           synID(line('.'),col('.'), 0) ,'name')
+    let out .= ' > '  . synIDattr(           rootID,                       'name')
+    let out .= "  :  " . OrStr(synIDattr(rootID, 'fg'), 'x')
+    let out .= "|"  . OrStr(synIDattr(rootID, 'bg'), 'x')
+    return out
   endfunction
-  map <leader>hc :echo SynStack()<CR>
+  nnoremap <leader>hs :echo HiTrace()<CR>
+  WK h.name +help
+  WK h.s show-syntax
 
   " sessions
   nnoremap <leader>os :Obsession ~/.vim/sessions/
   nnoremap <leader>oo :source ~/.vim/sessions/
+  WK o.name +sessions
+  WK o.s save
+  WK o.o open
 
   " soft wrap is useful for for editing prose
-  command! SoftWrap set wrap|set formatoptions=l|set lbr|map j gj|map k gk
+  function! SoftWrap()
+    setl wrap
+    setl formatoptions=l
+    setl linebreak
+    map <buffer> j gj
+    map <buffer> k gk
+  endfunction
+  command! SoftWrap call SoftWrap()
 
   " run things as vim commands
   vnoremap <leader>vx "yy:@y<cr>
   nmap <leader>vx my_v$h,vx'y
+  WK v.name +vimscript
+  WK v.x execute
 
   " reload things
   noremap <leader>rr :syntax sync fromstart<cr> 
@@ -431,9 +573,13 @@ filetype plugin on
   noremap <leader>rf :so %<cr>
   noremap <leader>rc :call Colors_MatchTerminal()<cr>
   noremap <leader>rl kw<cr>:!osascript ~/bin/reload_chcan<cr><cr>
-
-  " help me find/remember mappings
-  nnoremap <silent> <leader> :WhichKey ','<CR>
+  WK r.name +reload
+  WK r.r syntax
+  WK r.v vimrc-main
+  WK r.g vimrc-git
+  WK r.f vimrc-file
+  WK r.c termcolor
+  WK r.l browser
 
   " align code
   command! -nargs=1 -range Align <line1>,<line2>!sed "s/<args>/•&•/" | column -t -s "•"
@@ -441,7 +587,7 @@ filetype plugin on
 
 
 
-"```````````````````````````````````````````````````````````````````````````````
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Project-Local Vim Config
 
   function! GitVimrc_Path()
@@ -474,18 +620,18 @@ filetype plugin on
 
 
 
-"```````````````````````````````````````````````````````````````````````````````
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Snippets
 
   inoremap <c-;> <esc>/___<cr>cw
   inoremap <c-u> <esc>?___<cr>cw
-  inoremap ;<tab> <esc>:set paste<cr>my"ycaw<c-r>=trim(join(readfile(expand('~/.vim/snips/<c-r>y'),'b'), "\n"))<cr><esc>:set nopaste<cr>'y/___<cr>cw
+  inoremap \\<tab> <esc>:set paste<cr>my"ycaw<c-r>=trim(join(readfile(expand('~/.vim/snips/<c-r>y'),'b'), "\n"))<cr><esc>:set nopaste<cr>'y/___<cr>cw
   command! -nargs=1 Snip split $HOME/.vim/snips/<args>
 
 
 
 
-"```````````````````````````````````````````````````````````````````````````````
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " File Tree Sidebar
 
   function! Filebar_Open()
@@ -500,8 +646,9 @@ filetype plugin on
     let g:Filebar_isOpen=1
     let b:Filebar_isFileWindow=1
     " establish buffer-local keybindings
-    nnoremap <buffer> <leader>a :call Filebar_OpenInFar(1)<cr>
-    nnoremap <buffer> <leader>f :call Filebar_OpenInFar()<cr>
+    nnoremap <buffer> <silent> <leader>q :call Filebar_Close()<CR>
+    nnoremap <buffer> <silent> <leader>a :call Filebar_OpenInFar(1)<CR>
+    nnoremap <buffer> <silent> <leader>f :call Filebar_OpenInFar()<CR>
     nnoremap <buffer> <leader><tab> <c-w>p
   endfunction
 
@@ -530,26 +677,27 @@ filetype plugin on
   endfunction
 
   function! Filebar_JumpIn()
-    if exists('g:Filebar_isOpen')
-      let g:netrw_chgwin = winnr()
-      wincmd t
+    if !exists('g:Filebar_isOpen')
+      call Filebar_Open()
     endif
+    let g:netrw_chgwin = winnr()
+    wincmd t
   endfunction
 
+  let g:netrw_liststyle=3
   command! Files call Filebar_Open()
   command! Nofiles call Filebar_Close()
-  nnoremap <leader><tab> :call Filebar_JumpIn()<cr>
-  let g:netrw_liststyle=3
+  nnoremap <silent> <leader><tab> :call Filebar_JumpIn()<cr>
+  WK <Tab> filebar
 
 
 
 
 
-"```````````````````````````````````````````````````````````````````````````````
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Specific Languages/Filetypes
 
-
-  "````````````````````````````````````````
+  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   " html/js/css
 
     " js/cs 'norm' is 2-space indents
@@ -561,35 +709,27 @@ filetype plugin on
     function! CloseTags_Init()
       setl iskeyword=@,48-57,_,-,192-255
       inoremap <buffer> >> <esc>myF<l"yye`ya></<c-r>y><esc>F<i
-      inoremap <buffer> ><cr> <esc>myF<lye`ya></<c-r>y><esc>F<i<cr><esc>O
+      inoremap <buffer> ><CR> <esc>myF<lye`ya></<c-r>y><esc>F<i<cr><esc>O
     endfunction
     au FileType js call CloseTags_Init()
 
     " re-order css properties
     function! CSS_Comforts()
-      nmap <buffer> <leader>css vi{:call css#SortProperties()<cr>
-      vmap <buffer> <leader>css :call css#SortProperties()<cr>
+      nmap <buffer> <leader>css vi{:call css#SortProperties()<CR>
+      vmap <buffer> <leader>css :call css#SortProperties()<CR>
       setl iskeyword=@,48-57,_,-,?,!,192-255
     endfunction
     au FileType css,scss call CSS_Comforts()
 
 
-  "``````````````````````````````````````````````````
+  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~``
   " glsl
 
     au FileType frag,vert,fp,vp,glsl setf glsl 
 
 
-  "````````````````````````````````````````
+  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   " c++
-
-    function! IfInWord(then_, else_)
-      return (CurChar(-1) =~ '\w') ? a:then_ : a:else_
-    endfunction
-
-    function! IfAfterUnderscore(then_, else_)
-      return CurChar(-1) =~ '_' ? a:then_ : a:else_
-    endfunction
 
     function! OpenMatchingFile(...)
       for ext in a:000
@@ -603,66 +743,54 @@ filetype plugin on
     endfunction
 
     function! Cpp_Comforts()
+      call SwapDashUnderscore()
+
       iabbr <buffer> inc< #include ><left>
       iabbr <buffer> inc" #include "<left>
 
       iabbr <buffer> cosnt const
 
-      inoremap <buffer> - <c-r>=IfInWord("_", "-")<CR>
-      inoremap <buffer> _ <c-r>=IfInWord(IfAfterUnderscore("_", "-"), "_")<CR>
-
       inoremap <buffer> .. ->
       inoremap <buffer> ;; ::
-      inoremap <buffer> ,, std::
+      inoremap <buffer> ;s std::
 
       " open corresponding header/impl files
-      nnoremap <buffer> <leader>ec :call OpenMatchingFile("cc", "cpp", "c")<CR>
-      nnoremap <buffer> <leader>eh :call OpenMatchingFile("hh", "hpp", "h")<CR>
+      nnoremap <buffer> <silent> <leader>ec :call OpenMatchingFile('cc', 'cpp', 'c')<CR>
+      nnoremap <buffer> <silent> <leader>eh :call OpenMatchingFile('hh', 'hpp', 'h')<CR>
+      WK e.c cpp-impl
+      WK e.h cpp-header
+
     endfunction
 
     au FileType h,hh,hpp,c,cc,cpp call Cpp_Comforts()
 
 
-  "````````````````````````````````````````
+  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   " lua
 
-    function! InLuaString()
-      let syn = CursorSyntax()
-      return syn =~? 'luaString' ? 1 : 0
+    function! Lua_Comforts()
+      call SwapDashUnderscore()
     endfunction
 
-    function! InLuaComment()
-      let syn = CursorSyntax()
-      return syn =~? 'luaComment' ? 1 : 0
-    endfunction
+    au FileType lua call Lua_Comforts()
 
-    function! Smart_Underscore()
-      let line = getline('.')
-      let substr = strpart(line, -1, col('.'))
-      let force_hyphen = InLuaString() || InLuaComment()
-      let is_word = match(substr, '\w$') > -1
-      if (force_hyphen || !is_word)
-        return "-"
-      else
-        return "_"
-      end
-    endfunction
 
-    au FileType lua inoremap <buffer> - <c-r>=Smart_Underscore()<CR>
+
+"=======================================================================
 
 
 
 
-"______________________________________________________________________________
-
-
-
-
-"``````````````````````````````````````````````````````````````````````````````
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Experiments 
+
+  " quick current directory in command line
+  cabbr <expr> %d expand('%:p:h')
+  cabbr <expr> %f expand('%:p')
 
   " find/replace word under cursor
   nnoremap <leader>% :%s/<c-r><c-w>//g<left><left>
+  WK % replace-word
 
   " Make Y behave like other capitals
   nnoremap Y y$
@@ -674,12 +802,10 @@ filetype plugin on
   vnoremap v V
 
   " poor man's pear-tree
-  inoremap [] []<left>
-  inoremap {} {}<left>
-  inoremap {<cr> {}<left><cr><esc>O
+  " inoremap [] []<left>
+  " inoremap {} {}<left>
+  " inoremap <> <><left>
   inoremap /*<space> /* X */<esc>FXs
-
-  cabbr <expr> %% expand('%:p:h')
 
   nnoremap ,gs :Gstatus<cr>
   nnoremap ,gc :Gcommit<cr>
@@ -702,14 +828,20 @@ filetype plugin on
   "   noremap <leader>xl my0f lv$h:TREPLSendSelection<cr>`y
   " end
 
-  " copy current line w/ no newline
-  map <leader>vy my_v$hy
 
   let g:peekaboo_window='bo 60vnew'
 
   " delete without yanking
   nnoremap gd "_d
   vnoremap gd "_d
-  " paste without yanking
-  vnoremap p "_dP
+
+  vnoremap gw !awk '{ print length(), $0 \| "sort -n \| cut -d\\  -f2-" }'<CR>
+
+  " i use these for temporary things
+  WK m which_key_ignore
+  WK x which_key_ignore
+
+  " cycle through windows
+  nnoremap <tab> :wincmd w<CR>
+
 

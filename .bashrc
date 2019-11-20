@@ -4,7 +4,9 @@
   alias ..="cd .."
 
   # Colorize directory listing
-  alias ls="ls -G"
+  alias a='ls -G'
+  alias ls='ls -G'
+  alias la='ls -Gal'
 
   # Jump to git root directory
   alias cdg="cd \`(git rev-parse --show-toplevel)\`"
@@ -14,6 +16,9 @@
   alias v='vim'
   alias get='curl -O'
 
+  # Total directory size
+  alias sizeof='du -sh'
+
 
 
 ################################################################################
@@ -21,6 +26,9 @@
 
   alias rgb="printf \#%02X%02X%02X $@"
   alias rgba="printf \#%02X%02X%02X%02X $@"
+
+  function hex2rgba() { printf "%d %d %d %d\n" 0x${1:0:2} 0x${1:2:2} 0x${1:4:2} 0x${1:6:2}; }
+  function hex2rgb() { printf "%d %d %d\n" 0x${1:0:2} 0x${1:2:2} 0x${1:4:2}; }
 
   # Easy open url on phone
   function url() { qrencode -t ansi "$1"; }
@@ -54,10 +62,13 @@
   _GREY_=$'\e[0;37m'
   _LGREEN_=$'\e[1;32m'
 
-  LOCATION='`pwd | sed "s#\(/[^/]\{1,\}/[^/]\{1,\}/[^/]\{1,\}/\).*\(/[^/]\{1,\}/[^/]\{1,\}\)/\{0,1\}#\1...\2#g"`'
-  JOBS='`if [ -n "$(jobs -p)" ]; then echo "✦"; fi`'
+  function abbrev_pwd() { pwd | sed -E 's#(([^/]+/){4}).*((/[^/]+){2})#\1...\3#g'; }
+  function show_jobs() { if [ -n "$(jobs -p)" ]; then echo "✦"; fi; }
 
-  PS1="\n${_GREY_}${LOCATION}\n${_GREEN_}${JOBS}${_LGREEN_}❯ ${_CLEAR_}"
+  LOC='`abbrev_pwd`'
+  JOB='`show_jobs`'
+
+  PS1="\n${_GREY_}${LOC}\n${_GREEN_}${JOB}${_LGREEN_}❯ ${_CLEAR_}"
 
 
 

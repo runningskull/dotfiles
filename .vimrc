@@ -18,10 +18,11 @@ filetype plugin on
     Plug 'tpope/vim-commentary'
     Plug 'rking/ag.vim'
     Plug 'tpope/vim-dispatch'
+    Plug 'liuchengxu/vim-which-key'
     Plug 'tpope/vim-surround'
     Plug 'tpope/vim-obsession'
     Plug 'ciaranm/detectindent'
-    Plug 'liuchengxu/vim-which-key'
+    Plug 'tpope/vim-eunuch'
 
   " language runtimes
     Plug 'tpope/vim-markdown'
@@ -45,7 +46,6 @@ filetype plugin on
 
   " test-driving
     Plug 'junegunn/vim-peekaboo'
-    Plug 'tpope/vim-eunuch'
     " Plug 'Valloric/YouCompleteMe'
     " Plug 'neoclide/coc.nvim', {'branch': 'release'}
     " Plug 'kassio/neoterm'
@@ -92,7 +92,7 @@ filetype plugin on
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " UI Options
 
-  set nu
+  set number
   set foldcolumn=0
   set nowrap
   set cursorline
@@ -151,10 +151,6 @@ filetype plugin on
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Util Functions
 
-  function! OrStr(a, b)
-    return len(a:a) ? a:a : a:b
-  endfunction
-
   function! CurChar(...)
     let offset = 1 - (a:0 > 0 ? a:1 : 0)
     return strcharpart(strpart(getline('.'), col('.') - offset), 0, 1) 
@@ -170,12 +166,20 @@ filetype plugin on
     return (CurChar(-1) =~ '\w')
   endfunction
 
-  function! CurAfterUnderscore()
-    return (CurChar(-1) == '_')
-  endfunction
-
   function! CurInComment()
     return CurSyntax() =~ 'Comment'
+  endfunction
+
+  function! CurInString()
+    return CurSyntax() =~ 'String'
+  endfunction
+
+  function! CurIsAfter(char)
+    return (CurChar(-1) =~ a:char)
+  endfunction
+
+  function! CurIsBefore(char)
+    return (CurChar() =~ a:char)
   endfunction
 
   function! SetKey(dict, path, val)
@@ -203,6 +207,10 @@ filetype plugin on
 
   function! TitleCase(s)
     return substitute(a:s, '\<\w', '\U\0', 'g')
+  endfunction
+
+  function! OrStr(a, b)
+    return len(a:a) ? a:a : a:b
   endfunction
 
 
@@ -283,19 +291,15 @@ filetype plugin on
   noremap <silent> <leader>s :update<cr>
   WK s save
 
-  " quick function body
-  inoremap {<cr> {}<left><cr><esc>O
-
   " more ergonomic marks
   noremap ' `
   noremap ` '
 
+  "cycle visual -> visual-line -> normal
+  vnoremap v V
+
   " paste without yanking
   vnoremap p "_dP
-
-  " keep selection when indenting
-  vnoremap < <gv
-  vnoremap > >gv
 
   " default indenting
   set autoindent
@@ -337,7 +341,7 @@ filetype plugin on
   " less chording for snake_case
   function! SwapDashUnderscore()
     inoremap <buffer> <expr> - (!CurInWord() ? '-' : (CurInComment() ? '-' : '_'))
-    inoremap <buffer> <expr> _ (!CurInWord() ? '_' : (CurAfterUnderscore() ? '_' : '-'))
+    inoremap <buffer> <expr> _ (!CurInWord() ? '_' : (CurIsAfter('_') ? '_' : '-'))
   endfunction
 
 
@@ -362,8 +366,8 @@ filetype plugin on
   WK f.name +fold
 
   " fold/unfold one level
-  nnoremap <leader>ff za
-  WK f.f toggle-one-level
+  nnoremap <leader>f<leader> za
+  WK f., toggle-one-level
 
   " set foldlevel to a particular level
   nnoremap <leader>fs :setl foldlevel=
@@ -516,10 +520,10 @@ filetype plugin on
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Misc Helpers
 
-  WK h.name +help
+  " show help for word under cursor
   nnoremap <leader>hw :h <c-r><c-w><CR>
+  WK h.name +help
   WK h.w help-word
-
 
   " easy/powerful autocomplete from all buffers
   function! TabComplete(key)
@@ -530,7 +534,7 @@ filetype plugin on
   inoremap <expr> <s-tab> TabComplete("\<c-p>")
   set completeopt=menuone
   
-  " show syntax stack of character under cursor
+  " show syntax/highlight help for character under cursor
   function! HiTrace()
     let rootID = synIDtrans(synID(line('.'),col('.'), 1))
     let out  =   ' '  . synIDattr(           synID(line('.'),col('.'), 0) ,'name')
@@ -560,6 +564,10 @@ filetype plugin on
   endfunction
   command! SoftWrap call SoftWrap()
 
+  " get path to current dir/file easily
+  cabbr <expr> %d expand('%:p:h')
+  cabbr <expr> %f expand('%:p')
+
   " run things as vim commands
   vnoremap <leader>vx "yy:@y<cr>
   nmap <leader>vx my_v$h,vx'y
@@ -580,9 +588,6 @@ filetype plugin on
   WK r.f vimrc-file
   WK r.c termcolor
   WK r.l browser
-
-  " align code
-  command! -nargs=1 -range Align <line1>,<line2>!sed "s/<args>/•&•/" | column -t -s "•"
 
 
 
@@ -625,7 +630,7 @@ filetype plugin on
 
   inoremap <c-;> <esc>/___<cr>cw
   inoremap <c-u> <esc>?___<cr>cw
-  inoremap \\<tab> <esc>:set paste<cr>my"ycaw<c-r>=trim(join(readfile(expand('~/.vim/snips/<c-r>y'),'b'), "\n"))<cr><esc>:set nopaste<cr>'y/___<cr>cw
+  inoremap \<tab> <esc>:set paste<cr>my"ycaw<c-r>=trim(join(readfile(expand('~/.vim/snips/<c-r>y'),'b'), "\n"))<cr><esc>:set nopaste<cr>'y/___<cr>cw
   command! -nargs=1 Snip split $HOME/.vim/snips/<args>
 
 
@@ -693,6 +698,28 @@ filetype plugin on
 
 
 
+"~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+" Auto-Pair Brackets
+
+  function! AutoPair_Sub(cmd, open, close)
+    return substitute(substitute(a:cmd, '{', a:open, 'g'), '}', a:close, 'g')
+  endfunction
+
+  function! AutoPair(pair)
+    let [open, close] = split(a:pair, '\zs')
+    exe AutoPair_Sub('inoremap {{ {}<left>', open, close)
+    exe AutoPair_Sub('inoremap <expr> } (CurIsBefore("}") ? "\<right>" : "}")', open, close)
+    exe AutoPair_Sub('inoremap {} {}', open, close)
+    exe AutoPair_Sub('inoremap {<CR> {}<left><CR><esc>O', open, close)
+  endfunction
+
+  call AutoPair('()')
+  call AutoPair('[]')
+  call AutoPair('{}')
+  " call AutoPair('<>')
+
+
+
 
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Specific Languages/Filetypes
@@ -750,16 +777,17 @@ filetype plugin on
 
       iabbr <buffer> cosnt const
 
-      inoremap <buffer> .. ->
+      inoremap <buffer><expr> .. ((CurInString() \|\| CurInComment()) ? '..' : '->')
       inoremap <buffer> ;; ::
+
       inoremap <buffer> ;s std::
+      inoremap <buffer> ;a &
 
       " open corresponding header/impl files
       nnoremap <buffer> <silent> <leader>ec :call OpenMatchingFile('cc', 'cpp', 'c')<CR>
       nnoremap <buffer> <silent> <leader>eh :call OpenMatchingFile('hh', 'hpp', 'h')<CR>
       WK e.c cpp-impl
       WK e.h cpp-header
-
     endfunction
 
     au FileType h,hh,hpp,c,cc,cpp call Cpp_Comforts()
@@ -776,17 +804,14 @@ filetype plugin on
 
 
 
-"=======================================================================
+
+":::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
 
 
 
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Experiments 
-
-  " quick current directory in command line
-  cabbr <expr> %d expand('%:p:h')
-  cabbr <expr> %f expand('%:p')
 
   " find/replace word under cursor
   nnoremap <leader>% :%s/<c-r><c-w>//g<left><left>
@@ -798,44 +823,21 @@ filetype plugin on
   " qq to record, Q to replay
   nnoremap Q @q
 
-  " just feels right
-  vnoremap v V
-
-  " poor man's pear-tree
-  " inoremap [] []<left>
-  " inoremap {} {}<left>
-  " inoremap <> <><left>
-  inoremap /*<space> /* X */<esc>FXs
-
+  " quick git actions
   nnoremap ,gs :Gstatus<cr>
   nnoremap ,gc :Gcommit<cr>
   nnoremap ,gp :Dispatch! git push<cr>
+  WK g.name +git
 
-  nnoremap ,tt :Topen<cr>
-
-
-  " if has('nvim')
-  "   autocmd BufWinEnter,WinEnter term://* startinsert
-  "   tnoremap <esc> <C-\><C-n>
-  "   tnoremap <C-h> <C-\><C-n><C-w><C-h>
-  "   tnoremap <C-l> <C-\><C-n><C-w><C-l>
-  "   nnoremap <leader>xx :TREPLSendLine<cr>
-  "   vnoremap <leader>xx 20<gv:TREPLSendLine<cr>u
-  "   nnoremap <leader>xf myggVG20<gv:TREPLSendLine<cr>u`y
-  "   nnoremap <leader>xo myvap20<gv:TREPLSendLine<cr>u`y
-
-  "   " hack to send line like `local foo = bar` without 'local'
-  "   noremap <leader>xl my0f lv$h:TREPLSendSelection<cr>`y
-  " end
-
-
+  " preview registers before pasting
   let g:peekaboo_window='bo 60vnew'
 
   " delete without yanking
   nnoremap gd "_d
   vnoremap gd "_d
 
-  vnoremap gw !awk '{ print length(), $0 \| "sort -n \| cut -d\\  -f2-" }'<CR>
+  " sort lines by length
+  vnoremap g\| !awk '{ print length(), $0 \| "sort -n \| cut -d\\  -f2-" }'<CR>
 
   " i use these for temporary things
   WK m which_key_ignore
@@ -843,5 +845,18 @@ filetype plugin on
 
   " cycle through windows
   nnoremap <tab> :wincmd w<CR>
+
+  " more ergonomic backspace-by-word
+  inoremap <c-bs> <c-w>
+
+  " keep selection when indenting
+  vnoremap < <gv
+  vnoremap > >gv
+
+  " quick toggle virtual edit (useful for quickfix window)
+  nnoremap <expr> <leader>vv (':set ve=' . (&ve == '' ? 'all' : '') . "\<CR>")
+
+  " align code
+  command! -nargs=1 -range Align <line1>,<line2>!sed "s/<args>/•&•/" | column -t -s "•"
 
 

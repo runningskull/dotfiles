@@ -157,7 +157,8 @@ filetype plugin on
   endfunction
 
   function! CurSyntax(...)
-    let id = synID(line('.'), col('.'), 1)
+    let offset = (mode() == 'i') ? 1 : 0
+    let id = synID(line('.'), col('.') - offset, 1)
     let id = a:0 ? id : synIDtrans(id)
     return synIDattr(id, 'name')
   endfunction
@@ -442,7 +443,7 @@ filetype plugin on
   let g:ctrlp_by_filename = 0
   let g:ctrlp_custom_ignore = {'dir':  'build$\|dist$\|tmp$\|node_modules$'}
   let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
-  let g:ctrlp_prompt_mappings = {'PrtClearCache()': ['<c-r>']}
+  let g:ctrlp_prompt_mappings = { 'PrtClearCache()': ['<c-e>'], 'AcceptSelection("t")': ['<c-;>'] }
 
   " jump to specific buffer (obsoleted by ctrlp plugin)
   " noremap <c-\> :ls<cr>:b<space>

@@ -175,6 +175,14 @@ filetype plugin on
     return CurSyntax() =~ 'String'
   endfunction
 
+  function! CurInProse()
+    return CurSyntax() =~ '\(Comment\|String\)'
+  endfunction
+
+  function! CurInCodeWord()
+    return CurInWord() && !CurInProse()
+  endfunction
+
   function! CurIsAfter(char)
     return (CurChar(-1) =~ a:char)
   endfunction
@@ -320,6 +328,8 @@ filetype plugin on
 
   " highlight matching angle brackets
   set matchpairs+=<:>
+  let g:matchparen_timeout = 10
+  let g:matchparen_insert_timeout = 10
 
   " detect tabs or spaces
   set smarttab
@@ -341,8 +351,8 @@ filetype plugin on
 
   " less chording for snake_case
   function! SwapDashUnderscore()
-    inoremap <buffer> <expr> - (!CurInWord() ? '-' : (CurInComment() ? '-' : '_'))
-    inoremap <buffer> <expr> _ (!CurInWord() ? '_' : (CurIsAfter('_') ? '_' : '-'))
+    inoremap <buffer> <expr> - (CurInCodeWord() ? '_' : '-')
+    inoremap <buffer> <expr> _ ((CurInCodeWord() && !CurIsAfter('_')) ? '-' : '_')
   endfunction
 
 
@@ -478,8 +488,8 @@ filetype plugin on
   WK c.c goto
 
   " close buffer w/o closing window
-  noremap <leader>bd :b#\|bd \#<cr>
-  noremap <leader>bz :tabe %<cr>
+  noremap <silent> <leader>bd :b#\|bd \#<cr>
+  noremap <silent> <leader>bz :tabe %<cr>
   WK b.name +buffer
   WK b.d kill
   WK b.z zoom
@@ -536,7 +546,8 @@ filetype plugin on
 
   " get path to current dir/file easily
   cabbr <expr> %d expand('%:p:h')
-  cabbr <expr> %f expand('%:p')
+  cabbr <expr> %f expand('%:t')
+  cabbr <expr> %p expand('%:p')
 
   " run things as vim commands
   vnoremap <leader>vx "yy:@y<cr>
@@ -566,26 +577,25 @@ filetype plugin on
 " Project-Local Vim Config
 
   function! GitVimrc_Path()
-    let l:current = trim(system('echo ' . expand('%:p:h')))
-    let l:gitroot = trim(system('git -C ' . current . ' rev-parse --show-toplevel'))
-    return v:shell_error == 0 ? l:gitroot : ''
+    let gitroot = system('git -C ' . expand('%:p:h') . ' rev-parse --show-toplevel')
+    return v:shell_error == 0 ? trim(gitroot) : ''
   endfunction
 
   function! GitVimrc_Load()
-    if !(len(&filetype) && &modifiable) | return | endif
-    if (expand('%:p:h') == expand('~')) | return | endif
-    if (expand('%:t') == '.vimrc') | return | endif
+    if !(len(&filetype) && &modifiable) | return | endif  " not in non-files
+    if (expand('%:p:h') == expand('~')) | return | endif  " not ~/.vimrc
+    if (expand('%:t') == '.vimrc') | return | endif       " not the .vimrc itself
 
-    let l:gitroot = GitVimrc_Path()
-    let l:filename = l:gitroot . '/.vimrc'
-    if len(l:gitroot) && filereadable(l:filename)
-      exec printf('source %s', l:filename)
+    let gitroot = GitVimrc_Path()
+    let filename = gitroot . '/.vimrc'
+    if len(gitroot) && filereadable(filename)
+      exec 'source ' . filename
     endif
   endfunction
 
   function! GitVimrc_Edit()
-    let l:gitroot = GitVimrc_Path()
-    if len(l:gitroot)
+    let gitroot = GitVimrc_Path()
+    if len(gitroot)
       edit gitroot . '/.vimrc'
     endif
   endfunction
@@ -598,8 +608,8 @@ filetype plugin on
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Snippets
 
-  inoremap <c-;> <esc>/___<cr>cw
-  inoremap <c-u> <esc>?___<cr>cw
+  inoremap <c-l> <esc>/___<cr>"ycw
+  inoremap <c-u> <esc>?___<cr>"ycw
   inoremap \<tab> <esc>:set paste<cr>my"ycaw<c-r>=trim(join(readfile(expand('~/.vim/snips/<c-r>y'),'b'), "\n"))<cr><esc>:set nopaste<cr>'y/___<cr>cw
   command! -nargs=1 Snip split $HOME/.vim/snips/<args>
 
@@ -669,25 +679,36 @@ filetype plugin on
 
 
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-" Auto-Pair Brackets
+" Auto-Pair Characters
+
+  "   {{|  ->  {|}
+  "   }|}  ->  }|
+  "   {}|  ->  {}|     (if open != close)
 
   function! AutoPair_Sub(cmd, open, close)
     return substitute(substitute(a:cmd, '{', a:open, 'g'), '}', a:close, 'g')
   endfunction
 
+  function! AutoPairSingle(c)
+    " exe AutoPair_Sub('inoremap <expr> {<bs> ""', a:c, a:c)
+    exe AutoPair_Sub('inoremap <expr> { (CurIsBefore("\}") ? "\<right>" : "\{\}\<left>")', a:c, a:c)
+  endfunction
+
   function! AutoPair(pair)
     let [open, close] = split(a:pair, '\zs')
-    exe AutoPair_Sub('inoremap {{ {}<left>', open, close)
-    exe AutoPair_Sub('inoremap <expr> } (CurIsBefore("}") ? "\<right>" : "}")', open, close)
+    exe AutoPair_Sub('inoremap { {}<left>', open, close)
     exe AutoPair_Sub('inoremap {} {}', open, close)
     exe AutoPair_Sub('inoremap {<CR> {}<left><CR><esc>O', open, close)
+    exe AutoPair_Sub('inoremap <expr> {<bs> ""', open, close)
+    exe AutoPair_Sub('inoremap <expr> } (CurIsBefore("\}") ? "\<right>" : "\}")', open, close)
   endfunction
 
   call AutoPair('()')
   call AutoPair('[]')
   call AutoPair('{}')
-  " call AutoPair('<>')
-
+  call AutoPair('<>')
+  call AutoPairSingle('"')
+  call AutoPairSingle("'")
 
 
 
@@ -742,22 +763,31 @@ filetype plugin on
     function! Cpp_Comforts()
       call SwapDashUnderscore()
 
-      iabbr <buffer> inc< #include ><left>
-      iabbr <buffer> inc" #include "<left>
-
-      iabbr <buffer> cosnt const
-
-      inoremap <buffer><expr> .. ((CurInString() \|\| CurInComment()) ? '..' : '->')
+      " speed-dial
+      inoremap <buffer><expr> > (CurIsBefore('>') ? "\<right>" : (CurInCodeWord() ? '->' : '>'))
       inoremap <buffer> ;; ::
-
       inoremap <buffer> ;s std::
       inoremap <buffer> ;a &
+      inoremap <buffer> ;i #include 
+
+      " insert semicolon at the end of the line
+      nnoremap <buffer> <c-;> myA;<esc>`y
+      imap <buffer> <c-;> <esc><c-;>a
+
+      " override Auto-Pairs for stream operators
+      inoremap <buffer> << <<
+
+      " typos
+      iabbr <buffer> cosnt const
 
       " open corresponding header/impl files
       nnoremap <buffer> <silent> <leader>ec :call OpenMatchingFile('cc', 'cpp', 'c')<CR>
       nnoremap <buffer> <silent> <leader>eh :call OpenMatchingFile('hh', 'hpp', 'h')<CR>
       WK e.c cpp-impl
       WK e.h cpp-header
+
+      " dunno why this is glitchy, but it isn't necessary
+      syn clear cUserLabel
     endfunction
 
     au FileType h,hh,hpp,c,cc,cpp call Cpp_Comforts()
@@ -771,6 +801,17 @@ filetype plugin on
     endfunction
 
     au FileType lua call Lua_Comforts()
+
+
+  "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+  " vim
+
+    function! Vim_Comforts()
+      inoremap <buffer> " "
+      inoremap <buffer> "" ""<left>
+    endfunction
+
+    au FileType vim inoremap <buffer> " "
 
 
 
@@ -820,13 +861,15 @@ filetype plugin on
   inoremap <c-bs> <c-w>
 
   " keep selection when indenting
-  vnoremap < <gv
-  vnoremap > >gv
+  " vnoremap < <gv
+  " vnoremap > >gv
 
   " quick toggle virtual edit (useful for quickfix window)
   nnoremap <expr> <leader>vv (':set ve=' . (&ve == '' ? 'all' : '') . "\<CR>")
 
   " align code
   command! -nargs=1 -range Align <line1>,<line2>!sed "s/<args>/•&•/" | column -t -s "•"
+
+
 
 

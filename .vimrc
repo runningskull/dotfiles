@@ -165,6 +165,7 @@ filetype plugin on
 
   function! SetKey(dict, path, val)
     let keys = split(a:path, '\.')
+    let lastkey = keys[-1]
     let level = a:dict
     if len(keys) > 1
       let keys = keys[:-2]
@@ -178,7 +179,7 @@ filetype plugin on
         endif
       endfor
     endif
-    let level[keys[-1]] = a:val
+    let level[lastkey] = a:val
   endfunction
 
   function! EatChar(...)
@@ -507,9 +508,11 @@ filetype plugin on
 
   " close buffer w/o closing window
   noremap <silent> <leader>bd :silent! b#\|silent! bd #<cr>
-  noremap <silent> <leader>bz mY:tabe %<cr>`Y
   WK b.name +buffer
   WK b.d kill
+
+  " 'zoom' on buffer by opening it alone in a new tab
+  noremap <silent> <leader>bz mY:tabe %<cr>`Y
   WK b.z zoom
 
 
@@ -530,10 +533,10 @@ filetype plugin on
   " show syntax/highlight help for character under cursor
   function! HiTrace()
     let rootID = synIDtrans(synID(line('.'),col('.'), 1))
-    let out  = ' '     . synIDattr(synID(line('.'),col('.'), 0) ,'name')
-    let out .= ' → '    . synIDattr(rootID,                       'name')
+    let out  = ' '    . synIDattr(synID(line('.'),col('.'), 0) ,'name')
+    let out .= ' → '  . synIDattr(rootID,                       'name')
     let out .= ' : {' . OrStr(synIDattr(rootID, 'fg'), '-')
-    let out .= '/'     . OrStr(synIDattr(rootID, 'bg'), '-') . '} '
+    let out .= '/'    . OrStr(synIDattr(rootID, 'bg'), '-') . '} '
     for mod in split('bold italic reverse standout underline undercurl strikethrough')
       let out .= (synIDattr(rootID, mod) ? ' '.mod : '')
     endfor
@@ -697,11 +700,13 @@ filetype plugin on
 " Auto-Pair Characters
 
   " Defines these imaps:    (`|` is cursor position after typing lhs)
-  "   {    ->  {|}
-  "   }    ->  }|
-  "   {}   ->  {}|
-  "   {_   ->  { | }        (where _ is <SPC>)
-  "   {\n  ->  {\n|\n}
+  "   {      ->  {|}
+  "   }      ->  }|
+  "   {}     ->  {}|
+  "   {{     ->  {|
+  "   {_     ->  { | }      (where _ is <SPC>)
+  "   {\n    ->  {\n|\n}
+  "   {<BS>  ->  |
 
   " `{` and `}` are placeholders for the real open/close
   let s:AutoPair_Maps = {
@@ -868,8 +873,8 @@ filetype plugin on
       iabbr <buffer> atuo auto
 
       " open corresponding header/impl files
-      nnoremap <buffer> <silent> <leader>ec :call OpenMatchingFile('cc', 'cpp', 'c')<CR>
-      nnoremap <buffer> <silent> <leader>eh :call OpenMatchingFile('hh', 'hpp', 'h')<CR>
+      nnoremap <buffer><silent> <leader>ec :call OpenMatchingFile('cc', 'cpp', 'c')<CR>
+      nnoremap <buffer><silent> <leader>eh :call OpenMatchingFile('hh', 'hpp', 'h')<CR>
       WK e.c cpp-impl
       WK e.h cpp-header
 
@@ -1005,6 +1010,7 @@ filetype plugin on
 
   " clear errors from the command line
   nnoremap <leader><CR> :echo ""<CR>
+  WK <CR> which_key_ignore
 
 
 

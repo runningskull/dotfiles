@@ -626,10 +626,15 @@ filetype plugin on
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Snippets
 
-  inoremap <c-l> <esc>/___<cr>"ycw
-  inoremap <c-u> <esc>?___<cr>"ycw
-  inoremap \<tab> <esc>my"ydaw:r ~/.vim/snips/<c-r>y<CR>k$J/___<cr>"ycw
-  command! -nargs=1 Snip split $HOME/.vim/snips/<args>
+  " create/edit (use 3 or more underscores for a placeholder)
+  command! -nargs=1 Snip split ~/.vim/snips/<args>
+
+  " insert
+  inoremap \<tab> <esc>"ydiw:r ~/.vim/snips/<c-r>y<cr>=']kJ/___<cr>ve<c-g>
+
+  " move between placeholders
+  inoremap <c-l> <esc>/___<cr>ve<c-g>
+  inoremap <c-u> <esc>?___<cr>ve<c-g>
 
 
 

@@ -45,11 +45,8 @@ filetype plugin on
     Plug 'runningskull/monoid.vim'
 
   " test-driving
-    " Plug 'junegunn/vim-peekaboo'
     " Plug 'Valloric/YouCompleteMe'
     " Plug 'neoclide/coc.nvim', {'branch': 'release'}
-    " Plug 'kassio/neoterm'
-    " Plug 'kergoth/vim-hilinks'
 
   call plug#end()
 
@@ -199,12 +196,12 @@ filetype plugin on
   "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
   " one-liners
 
-  command! -nargs=+ Fn call Defn(<q-args>)
   function! Defn(body)
     let f = map(split(a:body, ' | '), {_,x -> trim(x)})
     let f[-1] = substitute(f[-1], '^\(return\)\{,1}', 'return ', 'i')
     exe "fu! ".join(f, "\n")."\nendfu"
   endfunction
+  command! -nargs=+ Fn call Defn(<q-args>)
 
   Fn CurInWord()       | CurChar(-1) =~ '\w'
   Fn CurInComment()    | CurSyntax() =~ 'Comment'
@@ -218,7 +215,6 @@ filetype plugin on
   Fn GUI()        | has('gui_vimr') || has('gui_running')
   Fn TitleCase(s) | substitute(a:s, '\<\w', '\U\0', 'g')
   Fn OrStr(a, b)  | len(a:a) ? a:a : a:b
-
 
 
 
@@ -251,7 +247,8 @@ filetype plugin on
     endfunction
   endif
 
-  " startup color theme
+  " startup color theme (try to match terminal)
+
   function! Colors_Init()
     if exists('g:manual_color') | return | endif
     if GUI() | return Colors_Default() | endif
@@ -260,13 +257,13 @@ filetype plugin on
     call call('Colors_' . (len(term) ? TitleCase(term[0]) : 'Default'), [])
   endfunction
   
-  call Colors_Init()
-
   if has('nvim')
     augroup termcolor | au!
       au VimResume * call Colors_Init()
     augroup END
   endif
+
+  call Colors_Init()
 
 
 
@@ -297,14 +294,14 @@ filetype plugin on
   WK ; comment
 
   " quick save
-  noremap <silent> <leader>s :update<cr>
-  WK s save
+  noremap <silent> <leader>w :update<cr>
+  WK w write
 
   " more ergonomic marks
   noremap ' `
   noremap ` '
 
-  "cycle: visual -> visual-[line/block] -> normal
+  " cycle: visual -> visual-[line/block] -> normal
   vnoremap <expr> v (mode() ==# 'v' ? 'V' : '<c-v>')
 
   " paste without yanking
@@ -374,6 +371,7 @@ filetype plugin on
 
 
 
+
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Folding
 
@@ -415,15 +413,14 @@ filetype plugin on
       normal za
     endif
   endfunction
-  " nnoremap <silent> <LeftRelease> :call OpenClickedFold()<cr>
   nnoremap <silent> <2-LeftMouse> :call OpenClickedFold()<CR>
 
   " nicer foldtext function
   set foldtext=MyFoldText()
   function! MyFoldText()
-    let ind = indent(v:foldstart - 1)
+    let ind = indent(v:foldstart)
     let info = v:foldend - v:foldstart + 1
-    return repeat(" ", ind) . "┆ » " . info . " « ┆"
+    return repeat(" ", ind) . "┆» " . info . " «┆"
   endfunction
 
 
@@ -452,8 +449,7 @@ filetype plugin on
   nnoremap - :Dirvish %<cr>
 
   " quick project-level search
-  nnoremap <leader>/ :Ag!<space>
-  WK / search-project
+  nnoremap <c-/> :Ag!<space>
 
   " quick suspend
   nnoremap Z <c-z>
@@ -465,13 +461,21 @@ filetype plugin on
   WK e.e *scratch*
   WK e.v vimrc
 
+  " edit file in same directory as current file
+  command! -nargs=1 Edit exe 'e '.expand('%:p:h').'/<args>'
+
+
   " ctrl-p is all that and a bag of chips
   nnoremap \ :CtrlPMRU<cr>
-  noremap <c-\> :CtrlP<cr>
+  nnoremap <c-\> :CtrlP<cr>
   let g:ctrlp_by_filename = 0
   let g:ctrlp_custom_ignore = {'dir':  'build$\|dist$\|tmp$\|node_modules$'}
   let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
-  let g:ctrlp_prompt_mappings = { 'PrtClearCache()': ['<c-o>'], 'AcceptSelection("t")': ['<tab>'] }
+  let g:ctrlp_prompt_mappings = {
+        \ 'PrtClearCache()': ['<c-o>'], 
+        \ 'AcceptSelection("t")': ['<tab>'],
+        \ 'AcceptSelection("h")': ['=']
+  \ }
 
   " jump to specific buffer (obsoleted by ctrlp plugin)
   " noremap <c-\> :ls<cr>:b<space>
@@ -488,10 +492,6 @@ filetype plugin on
   set wildignore+=*/bower_components/*
   set wildignore+=*/build/*
   set wildignore+=*.luac
-
-  " window commands w/o chording
-  nnoremap <leader>w <c-w>
-  WK w which_key_ignore
 
   " navigate quickfix (error) list
   noremap <leader>co :Copen<cr>
@@ -552,14 +552,15 @@ filetype plugin on
 
   " show help for word under cursor
   nnoremap <leader>hw :h <c-r><c-w><CR>
+  vnoremap <leader>hw "yy:h <c-r>y<CR>
   WK h.w help-word
 
   " sessions
-  nnoremap <leader>os :Obsession ~/.vim/sessions/
-  nnoremap <leader>oo :source ~/.vim/sessions/
-  WK o.name +sessions
-  WK o.s save
-  WK o.o open
+  nnoremap <leader>ss :Obsession ~/.vim/sessions/
+  nnoremap <leader>so :source ~/.vim/sessions/
+  WK s.name +sessions
+  WK s.s save
+  WK s.o open
 
   " get path to current dir/file easily
   cnoreabbr <expr> %d expand('%:p:h')
@@ -617,7 +618,7 @@ filetype plugin on
   endfunction
 
   augroup gitvimrc | au!
-    au BufRead * call GitVimrc_Load()
+    au BufNewFile,BufRead * call GitVimrc_Load()
   augroup END
 
 
@@ -630,11 +631,12 @@ filetype plugin on
   command! -nargs=1 Snip split ~/.vim/snips/<args>
 
   " insert
-  inoremap \<tab> <esc>"ydiw:r ~/.vim/snips/<c-r>y<cr>=']kJ/___<cr>ve<c-g>
+  inoremap \<tab> <esc>"ydiw:r ~/.vim/snips/<c-r>y<cr>=']kJ/___<cr>"_cw
 
   " move between placeholders
-  inoremap <c-l> <esc>/___<cr>ve<c-g>
-  inoremap <c-u> <esc>?___<cr>ve<c-g>
+  "   note: select-mode will clobber clipboard, so black-hole instead
+  inoremap <c-l> <esc>/___<cr>"_cw
+  inoremap <c-u> <esc>?___<cr>"_cw
 
 
 
@@ -853,11 +855,11 @@ filetype plugin on
           return
         endif
       endfor
-      echoe "No matching file!"
+      call Warn("No matching file!")
     endfunction
 
     function! Cpp_ShouldArrow()
-      return CurInCodeWord() || CurIsAfter(')')
+      return CurInCodeWord() || CurIsAfter(')') || CurIsAfter(']')
     endfunction
 
     function! FT_cpp()
@@ -869,6 +871,7 @@ filetype plugin on
       inoremap <buffer> ;s std::
       inoremap <buffer> ;a &
       inoremap <buffer> ;i #include 
+      inoremap <buffer> ;t template <><left>
 
       " override Auto-Pairs for stream operators
       inoremap <buffer> << <<
@@ -956,46 +959,19 @@ filetype plugin on
   nnoremap <leader>% :%s/<c-r><c-w>//g<left><left>
   WK % replace-word
 
-  " Make Y behave like other capitals
-  nnoremap Y y$
-
-  " quick git actions
-  nnoremap ,gs :Gstatus<cr>
-  nnoremap ,gc :Gcommit<cr>
-  nnoremap ,gp :Dispatch! git push<cr>
-  WK g.name +git
-  WK g.s status
-  WK g.c commit
-  WK g.p push
-
   " sort lines by length
   vnoremap g\| !awk '{ print length(), $0 \| "sort -n \| cut -d\\  -f2-" }'<CR>
 
-  " i use these for temporary things
+  " temporary things
   WK m (scratch)
-
-  " more ergonomic backspace-by-word
-  inoremap <c-bs> <c-w>
-
-  " quick toggle virtual edit (useful for quickfix window)
-  nnoremap <expr> <leader>vv (':set ve=' . (&ve == '' ? 'all' : '') . "\<CR>")
 
   " easier scrolling w/o moving cursor
   nnoremap <up> <c-y>
   nnoremap <down> <c-e>
 
   " working with tabs
-  nnoremap <silent> <leader>[ :tabprev<CR>
-  nnoremap <silent> <leader>] :tabnext<CR>
-  WK [ tab-prev
-  WK ] tab-next
-
-  " edit file in same directory as current file
-  command! -nargs=1 Edit exe 'e '.expand('%:p:h').'/<args>'
-
-  " inserting blank lines
-  " nnoremap <cr> o<esc>
-  inoremap <c-j> <esc>o
+  nnoremap <silent> { :tabprev<CR>
+  nnoremap <silent> } :tabnext<CR>
 
   " regex substitute
   cnoreabbr %s %s/\v<c-r>=EatChar()<CR>
@@ -1012,10 +988,17 @@ filetype plugin on
   nnoremap <c-d> 30<c-e>
   nnoremap <c-u> 30<c-y>
 
+  " quick jump between windows
+  nnoremap <tab> <c-w>p
 
-  " clear errors from the command line
-  nnoremap <leader><CR> :echo ""<CR>
-  WK <CR> which_key_ignore
+  " quick buffer-local abbr
+  cabbr mapl map <buffer> 
+  cabbr inol inoremap <buffer>
 
+
+  nnoremap <leader>= :wincmd =<CR>
+  WK = eq-windows
+
+  set tags^=.git/tags
 
 

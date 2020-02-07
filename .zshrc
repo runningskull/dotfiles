@@ -1,185 +1,95 @@
-## Use zgen
-DISABLE_AUTO_UPDATE="true"
-source "${HOME}/.zgen/zgen.zsh"
+zmodload zsh/zprof
 
+################################################################################
+## Core Config
 
-if ! zgen saved; then
-  zgen oh-my-zsh
+  HISTSIZE=500
+  HISTFILESIZE=5000
 
-  zgen load mafredi/async
-  zgen load runningskull/pure
-  zgen load peterhurford/get-it-on
 
-  zgen save
-fi
+################################################################################
+## Aliases
 
+  alias ..="cd .."
 
-## virtualenv - todo:remove
-# export WORKON_HOME=$HOME/.virtualenvs
-# source /usr/local/bin/virtualenvwrapper.sh
+  # Colorize directory listing
+  alias a='ls -G'
+  alias ls='ls -G'
+  alias la='ls -Ga'
+  alias ll='ls -Gal'
 
+  # Jump to git root directory
+  alias cdg="cd \`(git rev-parse --show-toplevel)\`"
 
+  # Shortcuts
+  alias g='git'
+  alias v='vim'
+  alias get='curl -O'
 
-##------------------------------------------------------------------------------
-## History Tweaks
+  # Total directory size
+  alias sizeof='du -sh'
 
-setopt inc_append_history
-setopt SHARE_HISTORY
-setopt HIST_IGNORE_SPACE
-SAVEHIST=20000
-HISTFILE=~/.zsh_history
 
 
-# << not working
+################################################################################
+# Helpers
 
-up-line-or-local-history() {
-    zle set-local-history 1
-    zle up-line-or-history
-    zle set-local-history 0
-}
-zle -N up-line-or-local-history
-down-line-or-local-history() {
-    zle set-local-history 1
-    zle down-line-or-history
-    zle set-local-history 0
-}
-zle -N down-line-or-local-history
+  alias rgb="printf \#%02X%02X%02X $@"
+  alias rgba="printf \#%02X%02X%02X%02X $@"
 
-## local
-bindkey "${terminfo[kcuu1]}" up-line-or-local-history
-bindkey "${terminfo[kcud1]}" down-line-or-local-history
+  function hex2rgba() { printf "%d %d %d %d\n" 0x${1:0:2} 0x${1:2:2} 0x${1:4:2} 0x${1:6:2}; }
+  function hex2rgb() { printf "%d %d %d\n" 0x${1:0:2} 0x${1:2:2} 0x${1:4:2}; }
 
+  # Easy open url on phone
+  function url() { qrencode -t ansi "$1"; }
 
-# global
-bindkey "^[[1;5A" up-line-or-history    # [CTRL] + Cursor up
-bindkey "^[[1;5B" down-line-or-history  # [CTRL] + Cursor down
+  # Like 'pwd' but for a given file
+  function fwd() { echo "$(pwd)/$1"; }
 
-# >> /not working
+  # Open GitHub repo
+  function github() { 
+    open "$(git config --get remote.origin.url | sed -E 's#git@github.com:(.+)\.git#https://github.com/\1/#')";
+  }
 
 
 
+################################################################################
+# Path Management
 
+  PATH="/usr/local/opt/qt/bin:$PATH"
+  PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
 
-##------------------------------------------------------------------------------
-## Theme
+  # local utils are highest priority
+  PATH="~/bin:$PATH"
 
-export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=240"
 
 
+################################################################################
+# Prompt
 
-##------------------------------------------------------------------------------
-## Path
+  setopt PROMPT_SUBST
 
-export PATH=$HOME/bin:/usr/local/bin:$PATH
+  CRLF=$'\n'
 
+  function abbrev_pwd() { pwd | sed -E 's#(([^/]+/){4}).*((/[^/]+){2})#\1...\3#g'; }
+  function show_jobs() { if [ -n "$(jobs -p)" ]; then echo "✦"; fi; }
 
+  PS1="${CRLF}%F{8}\$(abbrev_pwd)${CRLF}%F{2}\$(show_jobs)%F{10}❯ %f"
 
-##------------------------------------------------------------------------------
-## Editors 
 
-export EDITOR=vim
 
-# NeoVim!
-# alias vim="nvim"
-# alias v="nvim"
-alias v="vim"
+################################################################################
+# Completion
 
-# Emacs!
-alias Emacs="/usr/local/bin/emacs"
-alias E="/usr/local/bin/emacs"
-alias emacs="emacs --no-window-system"
-alias e="emacs"
-alias spacemacs="env HOME=$HOME/spacemacs emacs"
-# alias e2="env HOME=$HOME/emacs2 emacs --no-window-system"
-# alias E2="env HOME=$HOME/emacs2 Emacs"
+  autoload -Uz compinit
+  (){ if [[ $# -gt 0 ]]; then compinit; else compinit -C; fi } ~/.zcompdump(N.mh+24)
 
-# Python!
-alias py="python3"
+  zstyle ':completion:*' matcher-list '' \
+    'm:{a-zA-Z-_}={A-Za-z_-}' \
+    'r:|[._-]=* r:|=*' \
+    'l:|=* r:|=*'
 
 
 
-##------------------------------------------------------------------------------
-## Utils
-
-# std unix
-alias ls=' gls -G --group-directories-first --color=auto'
-alias ll=' gls -lG --group-directories-first --color=auto'
-alias cls=' clear;echo;ls'
-alias rm='rm -i' # prompt for deleting
-alias rmm='rm -f'
-
-# speed-dial
-alias a='ls'
-alias c='clear'
-
-# dev stuff
-alias g='git'
-alias gti='git'
-alias gs='git status'
-alias pull='git pull'
-alias gpom='git pull origin master'
-alias st='st --no-cache'
-function greb() { git rebase $@ 2>/dev/null | grep CONFLICT }
-
-# directory aliases
-hash -d p=~/projects/
-hash -d f=~/projects/_forked
-hash -d c=~/projects/_cloned
-hash -d e=~/.emacs.d
-hash -d ec=~/.emacs.d/lisp/config
-
-function kj() { $@ && terminal-notifier -title "iTerm" -message "done" || terminal-notifier -title "FAILED" -message "process returned nonzero"}
-function jk() { $@ && terminal-notifier -title "iTerm" -message "done" || terminal-notifier -title "FAILED" -message "process returned nonzero"}
-
-source ~/.zsh/completion.zsh
-
-
-
-##------------------------------------------------------------------------------
-## Dev Environment
-
-alias car='carthage'
-
-alias lein='rlwrap /usr/local/bin/lein'
-alias cljrepl='rlwrap java -cp ~/.m2/repository/org/clojure/clojure/1.8.0/clojure-1.8.0.jar clojure.main'
-
-# necessary ugliness
-function usegpg () { killall gpg-agent ssh-agent; eval $(gpg-agent --daemon --enable-ssh-support) }
-
-# node.js version manager
-export NVM_DIR="/Users/runningskull/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"  # This loads nvm
-
-
-# Racket
-
-export PATH="/Applications/Racket v6.8/bin:$PATH"
-
-
-
-#### TEMP: postgres
-
-alias postgres.server="pg_ctl -D /usr/local/var/postgres start"
-
-
-
-##------------------------------------------------------------------------------
-## Silliness
-function spam() { python -c "print ':$@: ' * 500" | pbcopy }
-
-
-
-
-
-
-
-##------------------------------------------------------------------------------
-## Testing
-
-preexec() {
-  printf "\033[38;5;236m\n"
-  printf '%*s\n' "${COLUMNS:-$(tput cols)}" '' | tr ' ' ┉
-  printf "\e[0m"
-  clear;echo "";
-}
-
+################################################################################
+# vim: set foldmethod=indent sw=2 et fdi= :

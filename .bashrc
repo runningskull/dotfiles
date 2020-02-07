@@ -1,4 +1,11 @@
 ################################################################################
+## Core Config
+
+HISTSIZE=500
+HISTFILESIZE=5000
+
+
+################################################################################
 ## Aliases
 
   alias ..="cd .."
@@ -6,7 +13,8 @@
   # Colorize directory listing
   alias a='ls -G'
   alias ls='ls -G'
-  alias la='ls -Gal'
+  alias la='ls -Ga'
+  alias ll='ls -Gal'
 
   # Jump to git root directory
   alias cdg="cd \`(git rev-parse --show-toplevel)\`"
@@ -50,25 +58,22 @@
   PATH="/usr/local/opt/gnu-sed/libexec/gnubin:$PATH"
 
   # local utils are highest priority
-  PATH="~/.bin:$PATH"
+  PATH="~/bin:$PATH"
 
 
 
 ################################################################################
 # Prompt
 
-  _CLEAR_=$'\e[0m'
-  _GREEN_=$'\e[0;32m'
-  _GREY_=$'\e[0;37m'
-  _LGREEN_=$'\e[1;32m'
+  _CLEAR_=$'\[\e[0m\]'
+  _GREEN_=$'\[\e[0;32m\]'
+  _GREY_=$'\[\e[0;37m\]'
+  _LGREEN_=$'\[\e[1;32m\]'
 
   function abbrev_pwd() { pwd | sed -E 's#(([^/]+/){4}).*((/[^/]+){2})#\1...\3#g'; }
   function show_jobs() { if [ -n "$(jobs -p)" ]; then echo "✦"; fi; }
 
-  LOC='`abbrev_pwd`'
-  JOB='`show_jobs`'
-
-  PS1="\n${_GREY_}${LOC}\n${_GREEN_}${JOB}${_LGREEN_}❯ ${_CLEAR_}"
+  PS1="\n${_GREY_}$(abbrev_pwd)\n${_GREEN_}$(show_jobs)${_LGREEN_}❯ ${_CLEAR_}"
 
 
 

@@ -32,6 +32,7 @@ filetype plugin on
     Plug 'pangloss/vim-javascript'
     Plug 'hail2u/vim-css3-syntax'
     Plug 'othree/html5.vim'
+    Plug 'bfrg/vim-cpp-modern'
     " Plug 'jonsmithers/vim-html-template-literals'
     " Plug 'Quramy/vim-js-pretty-template'
     " Plug 'runningskull/vim-mustache-handlebars'
@@ -101,8 +102,7 @@ filetype plugin on
   endif
 
   " no beeping
-  set noeb
-  set novb
+  set noeb vb t_vb=
 
   " we don't need no steeenking scrollbars
   set guioptions-=r
@@ -162,21 +162,13 @@ filetype plugin on
 
   function! SetKey(dict, path, val)
     let keys = split(a:path, '\.')
-    let lastkey = keys[-1]
-    let level = a:dict
-    if len(keys) > 1
-      let keys = keys[:-2]
-      for k in keys
-        if !has_key(level, k) | let level[k] = {} | endif
-        if type(level[k]) == v:t_dict
-          let level = level[k]
-        else
-          echoe "Could not set path ".a:path." : Key '".k."' is not a dictionary"
-          return
-        endif
-      endfor
-    endif
-    let level[lastkey] = a:val
+    let dict = a:dict
+    while len(keys) > 1
+      if !has_key(dict, keys[0]) | let dict[keys[0]] = {} | endif
+      let [dict, keys] = [dict[keys[0]], keys[1:]]
+    endwhile
+    try | let dict[keys[0]] = a:val
+    catch | call Warn("Bad SetKey: ".a:path) | endtry
   endfunction
 
   function! EatChar(...)
@@ -332,7 +324,7 @@ filetype plugin on
     set inccommand=nosplit
   endif
 
-  " usually I don't actually want the window center
+  " usually I want slightly higher than window center
   " can override on different machines with g:zz_offset
   noremap <expr> zz 'zz'.get(g:,'zz_offset',10)."\<c-e>"
 
@@ -407,14 +399,6 @@ filetype plugin on
   " no fillchars
   set fillchars=fold:\ 
 
-  " open folds by clicking them
-  function! OpenClickedFold()
-    if (foldclosed('.') > -1)
-      normal za
-    endif
-  endfunction
-  nnoremap <silent> <2-LeftMouse> :call OpenClickedFold()<CR>
-
   " nicer foldtext function
   set foldtext=MyFoldText()
   function! MyFoldText()
@@ -438,7 +422,7 @@ filetype plugin on
   WK k which_key_ignore
 
   " quick switch between 2 buffers
-  nnoremap <silent> <leader>z :b#<cr>
+  nnoremap <silent> <leader>. :b#<cr>
   WK z mru-buffer
 
   " quick quit window
@@ -450,6 +434,7 @@ filetype plugin on
 
   " quick project-level search
   nnoremap <c-/> :Ag!<space>
+  vnoremap <c-/> :<c-r>Ag! <c-r><c-w>
 
   " quick suspend
   nnoremap Z <c-z>
@@ -463,7 +448,6 @@ filetype plugin on
 
   " edit file in same directory as current file
   command! -nargs=1 Edit exe 'e '.expand('%:p:h').'/<args>'
-
 
   " ctrl-p is all that and a bag of chips
   nnoremap \ :CtrlPMRU<cr>
@@ -542,8 +526,6 @@ filetype plugin on
     endfor
     return out
   endfunction
-
-  " debug syntax highlighting
   nnoremap <leader>hs :echo HiTrace()<CR>
   nnoremap <leader>hf :set ft?<CR>
   WK h.name +help
@@ -567,12 +549,6 @@ filetype plugin on
   cnoreabbr <expr> %f expand('%:t')
   cnoreabbr <expr> %p expand('%:p')
   cnoreabbr <expr> %g GitRoot()
-
-  " run things as vim commands
-  vnoremap <leader>vx "yy:@y<cr>
-  nnoremap <leader>vx "yyy:@y<cr>
-  WK v.name +vimscript
-  WK v.x execute
 
   " reload things
   noremap <leader>rr :syntax sync fromstart<cr>:redraw!<cr>
@@ -632,6 +608,7 @@ filetype plugin on
 
   " insert
   inoremap \<tab> <esc>"ydiw:r ~/.vim/snips/<c-r>y<cr>=']kJ/___<cr>"_cw
+  inoremap \\<tab> <esc>pi/___<cr>"_cw
 
   " move between placeholders
   "   note: select-mode will clobber clipboard, so black-hole instead
@@ -706,14 +683,14 @@ filetype plugin on
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Auto-Pair Characters
 
-  " Defines these imaps:    (`|` is cursor position after typing lhs)
-  "   {      ->  {|}
-  "   }      ->  }|
-  "   {}     ->  {}|
-  "   {{     ->  {|
-  "   {_     ->  { | }      (where _ is <SPC>)
-  "   {\n    ->  {\n|\n}
-  "   {<BS>  ->  |
+  " Defines these imaps:    (`|` is cursor position)
+  "   |{      ->  {|}
+  "   |}      ->  }|
+  "   |{}     ->  {}|
+  "   |{{     ->  {|
+  "   |{_     ->  { | }      (where _ is <SPC>)
+  "   |{\n    ->  {\n|\n}
+  "   |{<BS>  ->  |
 
   " `{` and `}` are placeholders for the real open/close
   let s:AutoPair_Maps = {
@@ -755,7 +732,7 @@ filetype plugin on
 
 
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-" REPL
+" REPL / Eval
 
   if has('nvim') " TODO: port to vim8
     function! FT_terminal()
@@ -794,6 +771,11 @@ filetype plugin on
     WK t.v new-vert
     WK t.s new-horiz
   endif
+
+  " run things as vim commands
+  vnoremap <leader>xv "yy:@y<cr>
+  nnoremap <leader>xv "yyy:@y<cr>
+  WK x.v vimscript
 
 
 
@@ -916,14 +898,11 @@ filetype plugin on
       inoremap <buffer> "" ""<left>
 
       " speed-dial
-      inoremap <buffer> ;fu function! 
-      inoremap <buffer> ;f; endfunction
-      inoremap <buffer> ;ag augroup X \| au!<esc>FXs
-      inoremap <buffer> ;a; augroup END
-      inoremap <buffer> ;ino inoremap 
-      inoremap <buffer> ;nor nnoremap
-      inoremap <buffer> ;vno vnoremap
+      inoremap <buffer> ;fu function! X<cr>endfunction<esc>k0fXs
+      inoremap <buffer> ;ag augroup X \| au!<cr>augroup END<esc>k0fXs
       inoremap <buffer> ;b <buffer> 
+      inoremap <buffer> ;e <expr>
+      inoremap <buffer> ;l <lt>leader>
     endfunction
 
     augroup ft_vim | au!

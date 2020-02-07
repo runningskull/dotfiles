@@ -73,7 +73,7 @@ HISTFILESIZE=5000
   function abbrev_pwd() { pwd | sed -E 's#(([^/]+/){4}).*((/[^/]+){2})#\1...\3#g'; }
   function show_jobs() { if [ -n "$(jobs -p)" ]; then echo "✦"; fi; }
 
-  PS1="\n${_GREY_}$(abbrev_pwd)\n${_GREEN_}$(show_jobs)${_LGREEN_}❯ ${_CLEAR_}"
+  PS1="\n${_GREY_}\$(abbrev_pwd)\n${_GREEN_}\$(show_jobs)${_LGREEN_}❯ ${_CLEAR_}"
 
 
 

@@ -206,6 +206,8 @@ filetype plugin on
   Fn Chars(str)   | split(a:str, '\zs')
   Fn GUI()        | has('gui_vimr') || has('gui_running')
   Fn TitleCase(s) | substitute(a:s, '\<\w', '\U\0', 'g')
+  Fn Or(a, b)     | a:a ? a:a : a:b
+  Fn Any(...)     | returna:0 ? Or(a:1, call('Any', a:000[1:])) : 0 
   Fn OrStr(a, b)  | len(a:a) ? a:a : a:b
 
 
@@ -341,7 +343,7 @@ filetype plugin on
 
   " less chording for snake_case
   function! SwapDashUnderscore()
-    inoremap <buffer> <expr> - (CurInCodeWord() ? '_' : '-')
+    inoremap <buffer> <expr> - (Or(CurInCodeWord(), CurIsAfter('\.')) ? '_' : '-')
     inoremap <buffer> <expr> _ ((CurInCodeWord() && !CurIsAfter('_')) ? '-' : '_')
   endfunction
 
@@ -434,31 +436,32 @@ filetype plugin on
 
   " quick project-level search
   nnoremap <c-/> :Ag!<space>
-  vnoremap <c-/> :<c-r>Ag! <c-r><c-w>
+  vnoremap <c-/> :<c-u>Ag! ""<left><c-r><c-w>
 
   " quick suspend
   nnoremap Z <c-z>
 
   " edit various things
-  nnoremap <leader>ee :e /tmp/scratch-<c-r>=strftime("%Y%m%d%H%M")<cr><cr>i
+  nnoremap <leader>es :e /tmp/scratch-<c-r>=strftime("%Y%m%d%H%M")<cr><cr>i
   nnoremap <leader>ev :e ~/.vimrc<cr>
   WK e.name +edit
-  WK e.e *scratch*
+  WK e.s *scratch*
   WK e.v vimrc
 
   " edit file in same directory as current file
   command! -nargs=1 Edit exe 'e '.expand('%:p:h').'/<args>'
 
   " ctrl-p is all that and a bag of chips
-  nnoremap \ :CtrlPMRU<cr>
-  nnoremap <c-\> :CtrlP<cr>
+  nnoremap <leader>er :CtrlPMRU<cr>
+  nnoremap <leader>ee :CtrlP<cr>
   let g:ctrlp_by_filename = 0
   let g:ctrlp_custom_ignore = {'dir':  'build$\|dist$\|tmp$\|node_modules$'}
   let g:ctrlp_user_command = ['.git/', 'git --git-dir=%s/.git ls-files -oc --exclude-standard']
   let g:ctrlp_prompt_mappings = {
         \ 'PrtClearCache()': ['<c-o>'], 
         \ 'AcceptSelection("t")': ['<tab>'],
-        \ 'AcceptSelection("h")': ['=']
+        \ 'AcceptSelection("h")': ['='],
+        \ 'AcceptSelection("v")': [';']
   \ }
 
   " jump to specific buffer (obsoleted by ctrlp plugin)
@@ -505,13 +508,13 @@ filetype plugin on
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Misc Helpers
 
-  " easy/powerful autocomplete from all buffers
-  function! TabComplete(key)
-    if (pumvisible()) | return a:key | endif
-    return ((col('.') > 1) && (CurInWord())) ? a:key : "\<tab>"
+  " overloaded tab key
+  function! SmartTabIndent() " tabs for indent, spaces for align
+    if &et | return "\t" | endif
+    return getline('.') =~ '^\t*$' ? "\t" : repeat(" ", Or(col('.') % &ts, &ts))
   endfunction
-  inoremap <expr>   <tab> TabComplete("\<c-n>")
-  inoremap <expr> <s-tab> TabComplete("\<c-p>")
+  inoremap <expr>   <tab> CurInWord() ? "<c-n>" : SmartTabIndent()
+  inoremap <expr> <s-tab> "<c-p>"
   set completeopt=menuone
 
   " show syntax/highlight help for character under cursor
@@ -687,7 +690,6 @@ filetype plugin on
   "   |{      ->  {|}
   "   |}      ->  }|
   "   |{}     ->  {}|
-  "   |{{     ->  {|
   "   |{_     ->  { | }      (where _ is <SPC>)
   "   |{\n    ->  {\n|\n}
   "   |{<BS>  ->  |
@@ -695,7 +697,6 @@ filetype plugin on
   " `{` and `}` are placeholders for the real open/close
   let s:AutoPair_Maps = {
     \  'open':      'inoremap { {}<left>'
-    \, 'openonly':  'inoremap {{ {'
     \, 'openclose': 'inoremap {} {}'
     \, 'newline':   'inoremap {<CR> {}<left><CR><esc>O'
     \, 'space':     'inoremap {<space> {  }<left><left>'
@@ -953,7 +954,7 @@ filetype plugin on
   nnoremap <silent> } :tabnext<CR>
 
   " regex substitute
-  cnoreabbr %s %s/\v<c-r>=EatChar()<CR>
+  cnoreabbr s/ s/\v<c-r>=EatChar()<CR>
 
   " ctags
   function! RefreshCtags()

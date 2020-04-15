@@ -103,6 +103,7 @@ filetype plugin on
 
   " no beeping
   set noeb vb t_vb=
+  set belloff=all
 
   " we don't need no steeenking scrollbars
   set guioptions-=r
@@ -342,9 +343,19 @@ filetype plugin on
   onoremap al :normal val<CR>
 
   " less chording for snake_case
-  function! SwapDashUnderscore()
+  function! SwapDashUnderscore_Smart()
     inoremap <buffer> <expr> - (Or(CurInCodeWord(), CurIsAfter('\.')) ? '_' : '-')
-    inoremap <buffer> <expr> _ ((CurInCodeWord() && !CurIsAfter('_')) ? '-' : '_')
+    inoremap <buffer> <expr> _ ((CurInCodeWord() && !CurIsAfter('_') && !CurIsAfter('\u')) ? '-' : '_')
+  endfunction
+
+  function! SwapDashUnderscore_Hard()
+    inoremap <buffer> - _
+    inoremap <buffer> _ -
+  endfunction
+
+  function! SwapDashUnderscore()
+    " call SwapDashUnderscore_Smart()
+    call SwapDashUnderscore_Hard()
   endfunction
 
   " add a character to the end of the line w/o moving
@@ -425,7 +436,6 @@ filetype plugin on
 
   " quick switch between 2 buffers
   nnoremap <silent> <leader>. :b#<cr>
-  WK z mru-buffer
 
   " quick quit window
   nnoremap <silent> <leader>q :q<cr>
@@ -444,9 +454,11 @@ filetype plugin on
   " edit various things
   nnoremap <leader>es :e /tmp/scratch-<c-r>=strftime("%Y%m%d%H%M")<cr><cr>i
   nnoremap <leader>ev :e ~/.vimrc<cr>
+  nnoremap <leader>ez :e ~/.zshrc<cr>
   WK e.name +edit
   WK e.s *scratch*
   WK e.v vimrc
+  WK e.z zshrc
 
   " edit file in same directory as current file
   command! -nargs=1 Edit exe 'e '.expand('%:p:h').'/<args>'
@@ -935,6 +947,9 @@ filetype plugin on
 "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 " Experiments 
 
+  " replace all occurances on each line by default
+  set gdefault
+
   " find/replace word under cursor
   nnoremap <leader>% :%s/<c-r><c-w>//g<left><left>
   WK % replace-word
@@ -980,5 +995,17 @@ filetype plugin on
   WK = eq-windows
 
   set tags^=.git/tags
+
+
+  function! AutoPair_BS()
+    let c = CurChar(-1)
+    foo(1,2,3)
+    return string( searchpairpos('(', '', ')', 'W') )
+    if c == ')' | return "\<left>" | endif
+    if c == '(' | return "\<BS>" | endif
+    return "\<BS>"
+  endfunction
+  inoremap <expr> <BS> AutoPair_BS()
+
 
 

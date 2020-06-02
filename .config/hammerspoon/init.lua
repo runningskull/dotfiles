@@ -67,6 +67,14 @@ end
 
 function switch_to_named_window()
   hs.chooser.new(function(choice)
+    local winid = curwin():id()
+    for i,nw in ipairs(named_windows) do
+      if nw.winid == winid then
+        table.remove(named_windows, i)
+        table.insert(named_windows, 1, nw)
+        break
+      end
+    end
     if not choice then return end
     local win = hs.window.get(choice.winid)
     if win then win:focus() end
